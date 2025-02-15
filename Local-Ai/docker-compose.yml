@@ -1,0 +1,135 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - OLLAMA_KEEP_ALIVE=24h
+      - ENABLE_IMAGE_GENERATION=True
+      - COMFYUI_BASE_URL=http://stable-diffusion-webui:7860
+    networks:
+      - nat
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+# stable diffusion###########################################################################################################################################
+  stable-diffusion-webui:
+    image: zefie/stable-diffusion-automatic1111:latest
+    container_name: automatic1111
+    environment:
+      - CLI_ARGS=--allow-code --xformers --enable-insecure-extension-access --api --disable-safe-unpickle --no-half-vae
+    ports:
+      - 7860:7860
+    volumes:
+      - auto1111-data:/data
+      - auto1111-output:/output
+      - ./models:/models
+    stop_signal: SIGKILL
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['0']
+              capabilities: [compute, utility]
+    networks:
+      - nat
+# whisper###########################################################################################################################################
+  mongo:
+    image: mongo
+    container_name: mongo_whisper
+    env_file:
+      - .env
+    networks:
+      - nat
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./whisper/db_data:/data/db
+      - ./whisper/db_data/logs/:/var/log/mongodb/
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USER:-whishper}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASS:-whishper}
+    command: ['--logpath', '/var/log/mongodb/mongod.log']
+###########################################################################################################################################
+  translate:
+    container_name: whisper-libretranslate
+    image: libretranslate/libretranslate:latest-cuda
+    env_file:
+      - .env
+    networks:
+      - nat
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./whisper/libretranslate/data:/home/libretranslate/.local/share
+      - ./whisper/libretranslate/cache:/home/libretranslate/.local/cache
+    user: root
+    tty: true
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - LT_DISABLE_WEB_UI=True
+      - LT_LOAD_ONLY=${LT_LOAD_ONLY:-en,fr,es}
+      - LT_UPDATE_MODELS=True
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+###########################################################################################################################################
+  whisper:
+    container_name: whisper
+    pull_policy: always
+    image: pluja/whishper:latest-gpu
+    env_file:
+      - .env
+    networks:
+      - nat
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./whisper/uploads:/app/uploads
+      - ./whisper/logs:/var/log/whishper
+      - ./whisper/models:/app/models
+    restart: unless-stopped
+    depends_on:
+      - mongo
+      - translate
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - PUBLIC_INTERNAL_API_HOST=${WHISHPER_HOST}
+      - PUBLIC_TRANSLATION_API_HOST=${WHISHPER_HOST}
+      - PUBLIC_API_HOST=${WHISHPER_HOST:-}
+      - PUBLIC_WHISHPER_PROFILE=gpu
+      - WHISPER_MODELS_DIR=/app/models
+      - UPLOAD_DIR=/app/uploads
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+###########################################################################################################################################
+networks:
+  nat:
+    external: true

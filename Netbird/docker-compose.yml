@@ -1,0 +1,18 @@
+services:
+    netbird:
+        image: 'netbirdio/netbird:latest'
+        container_name: netbird
+        restart: unless-stopped
+      #  hostname: netbird  #(optional) changes your name inside netbird ui 
+        environment:
+        #    - 'NB_MANAGEMENT_URL=https://yournetbird.com' #(optional) only if you self host your own netbird server
+            - NB_SETUP_KEY=${NB_SETUP_KEY}
+        volumes:
+            - 'netbird-client:/etc/netbird'
+        networks:
+           - nat
+        cap_add:
+            - NET_ADMIN
+networks:
+    nat:
+        external: true

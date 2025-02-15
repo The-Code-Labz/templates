@@ -1,0 +1,26 @@
+services:
+  code-server:
+    image: codercom/code-server:latest
+    container_name: code-server
+    user: root
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=US/LOS_ANGELOS
+      - PASSWORD=${PASSWORD} #optional
+   #   - HASHED_PASSWORD=${HASHED_PASSWORD} #optional
+      - SUDO_PASSWORD=${SUDO_PASSWORD} #optional
+  #    - SUDO_PASSWORD_HASH=${SUDO_PASSWORD_HASH} #optional
+    #  - PROXY_DOMAIN=code-server.my.domain #optional
+    #  - DEFAULT_WORKSPACE=/home/coder #optional
+    volumes:
+      - /path/to/code-server/config:/config
+      - /path/to/workspace:/home/coder
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+    networks:
+        - nat
+networks:
+    nat:
+        external: true 

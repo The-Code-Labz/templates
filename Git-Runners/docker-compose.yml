@@ -1,0 +1,23 @@
+services:
+    gitlab-runner:
+        image: 'gitlab/gitlab-runner:latest'
+        volumes:
+            - '/var/run/docker.sock:/var/run/docker.sock'
+            - '/srv/gitlab-runner/config:/etc/gitlab-runner'
+        restart: always
+        container_name: gitlab-runner
+        networks:
+            - nat
+#####################################################################################################################################################            
+    gitlab-runner2:
+        image: 'gitlab/gitlab-runner:latest'
+        volumes:
+            - '/var/run/docker.sock:/var/run/docker.sock'
+            - '/srv/gitlab-runner/config:/etc/gitlab-runner'
+        restart: always
+        container_name: gitlab-runner-2
+        networks:
+            - nat
+networks:
+    nat:
+        external: true
