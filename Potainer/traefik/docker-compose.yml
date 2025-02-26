@@ -1,0 +1,22 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: always
+    ports:
+      - "9000:9000"
+    volumes:
+      - /path/to/your/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.portainer-ce.entrypoints=websecure
+      - traefik.http.routers.portainer-ce.rule=Host(`example.com`) # Replace with your desired h>
+      - traefik.http.routers.portainer-ce.tls=true
+      - traefik.http.routers.portainer-ce.tls.certresolver=resolver # Replace with your cert resolver name
+      - traefik.http.services.portainer-ce.loadbalancer.server.port=9000
+    networks:
+      - nat
+networks:
+  nat:
+    external: true
