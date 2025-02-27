@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: code-server
     user: root
-    privileged: true
+
     environment:
       - PUID=1000
       - PGID=1000
