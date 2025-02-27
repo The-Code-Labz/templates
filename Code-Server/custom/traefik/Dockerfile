@@ -28,7 +28,7 @@ RUN apt-get install -y docker.io docker-compose || { echo "Failed to install Doc
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Expose the port that code-server runs on
-EXPOSE 3000
+EXPOSE 8080
 
 # Start the code-server
 CMD ["code-server"]
