@@ -1,6 +1,6 @@
 services:
   code-server:
-    image: codercom/code-server:latest
+    image: codercom/code-server:4.97.2-39
     container_name: code-server
     user: root
     environment:

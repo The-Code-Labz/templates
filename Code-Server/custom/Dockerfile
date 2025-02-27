@@ -1,5 +1,5 @@
 # Use the specified base image
-FROM codercom/code-server:latest
+FROM codercom/code-server:4.97.2-39
 
 # Set the user to root
 USER root
