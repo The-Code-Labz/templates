@@ -1,0 +1,29 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    cap_add:
+      - NET_ADMIN
+    container_name: gluetun
+    networks:
+      - nat
+    devices:
+     - /dev/net/tun:/dev/net/tun
+    ports:
+      - 8888:8888/tcp # HTTP proxy
+      - 8388:8388/tcp # Shadowsocks
+      - 8388:8388/udp # Shadowsocks
+    environment:
+      # See https://github.com/qdm12/gluetun-wiki/tree/main/setup#setup
+      - VPN_SERVICE_PROVIDER=nordvpn
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=
+      - SERVER_COUNTRIES=United States
+      - SERVER_REGIONS=America
+      - SERVER_CITIES=
+      - TZ=
+      - HTTPPROXY=on
+      - SHADOWSOCKS=on
+networks:
+  nat:
+    external: true
