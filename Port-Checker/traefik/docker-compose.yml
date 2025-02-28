@@ -1,0 +1,40 @@
+---
+services:
+  web:
+    image: ghcr.io/dsgnr/portcheckerio-web:latest
+    container_name: portchecker
+    restart: unless-stopped
+    environment:
+      - DEFAULT_PORT=443  # Optional
+    depends_on:
+      - api
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portchecker.entrypoints=web,websecure"
+      - "traefik.http.routers.portchecker.rule=Host(`example.com`)"
+      - "traefik.http.routers.portchecker.tls=true"
+      - "traefik.http.routers.portchecker.tls.certresolver=resolver"
+      - "traefik.http.routers.portchecker.middlewares=https-redirect"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.services.web.loadbalancer.server.port=80"
+#################################################################
+  api:
+    image: ghcr.io/dsgnr/portcheckerio-api:latest
+    container_name: portchecker_api
+    restart: unless-stopped
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portchecker-api.entrypoints=web,websecure"
+      - "traefik.http.routers.portchecker-api.rule=Host(`example.com`)"
+      - "traefik.http.routers.portchecker-api.tls=true"
+      - "traefik.http.routers.portchecker-api.tls.certresolver=resolver"
+      - "traefik.http.routers.portchecker-api.middlewares=https-redirect"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+networks:
+  nat:
+    external: true
