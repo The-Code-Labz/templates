@@ -1,0 +1,40 @@
+services:
+  registry-ui:
+    image: quiq/registry-ui:latest
+    container_name: registry_ui
+    restart: unless-stopped
+    environment:
+      - SINGLE_REGISTRY=true
+      - REGISTRY_TITLE=Docker Registry UI
+      - DELETE_IMAGES=true
+      - SHOW_CONTENT_DIGEST=true
+      - NGINX_PROXY_PASS_URL=http://registry-server:5000
+      - SHOW_CATALOG_NB_TAGS=true
+      - CATALOG_MIN_BRANCHES=1
+      - CATALOG_MAX_BRANCHES=1
+      - TAGLIST_PAGE_SIZE=100
+      - REGISTRY_SECURED=false
+      - CATALOG_ELEMENTS_LIMIT=1000
+    networks:
+      -  nat:
+    ports:
+      - 80:80
+###################################################      
+  registry-server:
+    image: registry:latest
+    restart: unless-stopped
+    container_name: registry-server    
+    environment:
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[https://example.com]'
+      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
+      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+    volumes:
+      - /path/to/your-containers:/var/lib/registry
+    ports:
+      - 5000:5000
+    networks:
+      -  nat
+################################      
+networks:
+    nat:
+        external: true
