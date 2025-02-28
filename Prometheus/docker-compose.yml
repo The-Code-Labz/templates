@@ -1,0 +1,14 @@
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v3.2.1
+    restart: always
+    networks:
+      - nat
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus:/prometheus/
+    ports:
+      - 9090:9090
+networks:
+  nat:
+   external: true      
