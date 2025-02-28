@@ -1,0 +1,22 @@
+services:
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v3.2.1
+    restart: always
+    networks:
+      - nat
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus:/prometheus/
+#    ports:
+#      - 9090:9090
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.example.com`)"  # Replace with your domain
+      - "traefik.http.routers.prometheus.entrypoints=websecure" # Ensure using websecure entrypoint
+      - "traefik.http.routers.prometheus.tls=true" # Enable TLS on the router
+      - "traefik.http.routers.prometheus.tls.certresolver=cloudflare"  # Use Cloudflare resolver
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+networks:
+  nat:
+   external: true
