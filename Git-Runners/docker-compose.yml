@@ -9,7 +9,7 @@ services:
     networks:
       - nat
 #####################################################################################################################################################            
-    gitlab-runner2:
+  gitlab-runner2:
     image: 'gitlab/gitlab-runner:latest'
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
