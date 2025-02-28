@@ -1,0 +1,34 @@
+services:
+  watchtower:
+    container_name: watchtower
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 8080:8080
+    command: --interval 10 --http-api-metrics --http-api-token demotoken --debug parent child
+    networks:
+      - nat
+    restart: always
+##############################################################################################    
+  parent:
+    image: nginx
+    container_name: parent
+    networks:
+      - nat
+    restart: always
+####################################    
+  child:
+    image: nginx:alpine
+    labels:
+      com.centurylinklabs.watchtower.depends-on: parent
+    container_name: child
+    networks:
+      - nat
+    restart: always
+################################################################
+networks:
+  nat:
+    external: true
