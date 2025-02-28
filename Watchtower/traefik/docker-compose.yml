@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    ports:
+#    ports:
 #      - 8080:8080
     command: --interval 10 --http-api-metrics --http-api-token demotoken --debug parent child
     networks:
