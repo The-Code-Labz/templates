@@ -1,0 +1,25 @@
+services:
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: syncthing 
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=AMERICA/LOS_ANGELOS
+    volumes:
+      - /path/to/syncthing/config:/config
+      - /path/to/data1:/data1
+  #    - /path/to/data2:/data2
+    restart: always
+    networks:
+      -  nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.syncthing.entrypoints=websecure"
+      - "traefik.http.routers.syncthing.rule=Host(`example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.syncthing.tls=true"
+      - "traefik.http.routers.syncthing.tls.certresolver=resolver" # Replace with your cert resolver name
+      - "traefik.http.services.syncthing.loadbalancer.server.port=8384"
+networks:
+    nat:
+        external: true

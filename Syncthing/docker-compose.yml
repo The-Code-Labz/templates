@@ -1,0 +1,18 @@
+services:
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: syncthing
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=AMERICA/LOS_ANGELOS
+    volumes:
+      - /path/to/syncthing/config:/config
+      - /path/to/data1:/data1
+  #    - /path/to/data2:/data2
+    restart: always
+    networks:
+      -  nat
+networks:
+    nat:
+        external: true
