@@ -2,6 +2,7 @@ services:
   teleport:
     image: public.ecr.aws/gravitational/teleport-distroless-debug:17.2.9
     container_name: teleport
+    command: ["/bin/sh", "-c", "ln -s /busybox/sh /bin/bash && teleport start"]
     ports:
       - "3080:3080"
       - "3023:3023"
