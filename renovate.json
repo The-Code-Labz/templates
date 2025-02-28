@@ -1,3 +1,9 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json"
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json" ,
+  "assignees": [
+    "code-labz"
+  ],
+  "automerge": true ,
+  "dependencyDashboard": true ,
+  "dependencyDashboardApproval": true
 }
