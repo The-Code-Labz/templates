@@ -1,0 +1,20 @@
+services:
+  dockge:
+    image: louislam/dockge:nightly
+    restart: unless-stopped
+    container_name: dockge
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /dockge:/app/data
+      - /root/.docker/:/root/.docker
+      - /stacks:/opt/stacks
+    environment:
+      # Tell Dockge where is your stacks directory
+      - DOCKGE_STACKS_DIR=/opt/stacks
+    networks:
+      -  nat
+    ports:
+      - 5001:5001  
+networks:
+  nat:
+    external: true

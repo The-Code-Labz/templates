@@ -1,0 +1,25 @@
+services:
+  dockge:
+    image: louislam/dockge:nightly
+    restart: unless-stopped
+    container_name: dockge
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /dockge:/app/data
+      - /root/.docker/:/root/.docker
+      - /stacks:/opt/stacks
+    environment:
+      # Tell Dockge where is your stacks directory
+      - DOCKGE_STACKS_DIR=/opt/stacks
+    networks:
+      -  nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dockge.entrypoints=websecure"
+      - "traefik.http.routers.dockge.rule=Host(`example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.dockge.tls=true"
+      - "traefik.http.routers.dockge.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.dockge.loadbalancer.server.port=5001"
+networks:
+        nat:
+            external: true
