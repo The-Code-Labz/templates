@@ -1,0 +1,24 @@
+services:
+  nginx-proxy:
+    image: 'jc21/nginx-proxy-manager:2.12.3'
+    container_name: nginx-traefik
+    networks:
+      -  nat
+    restart: always
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - /data:/data
+      - /letsencrypt:/etc/letsencrypt
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx-proxy-manager-https.entrypoints=websecure"
+      - "traefik.http.routers.nginx-proxy-manager-https.rule=Host(`example.com`)"  # Replace with your FQDN
+      - "traefik.http.routers.nginx-proxy-manager-https.tls=true"
+      - "traefik.http.routers.nginx-proxy-manager-https.tls.certresolver=cloudflare"
+      - "traefik.http.services.nginx-proxy-manager.loadbalancer.server.port=81"
+networks:
+    nat:
+        external: true
