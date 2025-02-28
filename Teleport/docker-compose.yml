@@ -1,6 +1,6 @@
 services:
   teleport:
-    image: public.ecr.aws/gravitational/teleport-distroless-debug:17.2.8
+    image: public.ecr.aws/gravitational/teleport-distroless-debug:17.2.9
     container_name: teleport
     ports:
       - "3080:3080"
