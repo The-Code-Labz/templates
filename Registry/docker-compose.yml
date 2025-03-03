@@ -1,10 +1,15 @@
 services:
   registry-ui:
-    image: quiq/registry-ui:latest
-    container_name: registry_ui
+    image: chickenbellyfin/registry-ui:latest
+    container_name: registry-ui
     restart: unless-stopped
     environment:
-      - X-WEBAUTH-USER=${X-WEBAUTH-USER}
+      - REGISTRY_URL=http://registry-server:5000
+      - APP_ENABLE_LOGIN=true
+      - REGISTRY_USERNAME=${REGISTRY_USERNAME}
+      - REGISTRY_PASSWORD=${REGISTRY_PASSWORD}
+      - APP_THEME=dark
+      - APP_DEBUG=true
     networks:
       -  nat:
     ports:
