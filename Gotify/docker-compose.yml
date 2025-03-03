@@ -1,0 +1,16 @@
+services:
+  gotify:
+    image: gotify/server
+    container_name: gotify
+    volumes:
+      - /gotify:/app/data
+    restart: unless-stopped
+    networks:
+      - nat
+    environment:
+      - TZ=AMERICA/LOS_ANGELOS
+    ports:
+      - 80:80
+networks:
+  nat:
+    external: true      

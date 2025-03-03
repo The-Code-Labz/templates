@@ -1,0 +1,23 @@
+services:
+  gotify:
+    image: gotify/server
+    container_name: gotify
+    volumes:
+      - /gotify:/app/data
+    restart: unless-stopped
+    networks:
+      - nat
+    environment:
+      - TZ=AMERICA/LOS_ANGELOS
+    ports:
+      - 80:80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gotify-secure.entrypoints=websecure"
+      - "traefik.http.routers.gotify-secure.rule=Host(`gotify.yourdomain.com`)"
+      - "traefik.http.routers.gotify-secure.tls=true"
+      - "traefik.http.services.gotify.loadbalancer.server.port=80"   
+      - "traefik.http.routers.kestra.tls.certresolver=myresolver" # TLS certificate resolver
+networks:
+  nat:
+    external: true      
