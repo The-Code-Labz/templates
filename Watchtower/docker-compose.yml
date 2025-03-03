@@ -1,33 +1,36 @@
 services:
   watchtower:
-    container_name: watchtower
-    build:
-      context: ./
-      dockerfile: Dockerfile
+    image: containrrr/watchtower
+    restart: unless-stopped
+    environment:
+      - TZ=AMERICA/LOS_ANGELOS
+      # remove old images after update (useful for saving space)
+      - WATCHTOWER_CLEANUP=true
+      # the below will ignore labels set. It is worth checking out labels as that can be a more scalabe solution (automatic)
+      - WATCHTOWER_LABEL_ENABLE=true
+      # the docker host can also be remote by specifying tcp
+      # - DOCKER_HOST=tcp://hostname:port
+      # how frequently to check for images (default is 24 hours)
+      - WATCHTOWER_POLL_INTERVAL=86400
+      # choose whether to restart the containers after updates
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+      # choose whether to update stopped and exited containers
+      - WATCHTOWER_INCLUDE_STOPPED=true
+      # this will start containers that were stopped or exited if they are updated
+      - WATCHTOWER_REVIVE_STOPPED=true
+      # watchtower can behave like DIUN by only notifying, and not updating
+      # - WATCHTOWER_MONITOR_ONLY=true
+      # you can tell watchtower to do updates and restarts one by one - can be helpful
+      - WATCHTOWER_ROLLING_RESTART=true
+      - WATCHTOWER_NOTIFICATIONS=gotify
+      - WATCHTOWER_NOTIFICATION_GOTIFY_URL=https://gotify.jimsgarage.co.uk
+      - WATCHTOWER_NOTIFICATION_GOTIFY_TOKEN=/run/secrets/access_token
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    ports:
-      - 8080:8080
-    command: --interval 10 --http-api-metrics --http-api-token demotoken --debug parent child
+      - /var/run/docker.sock:/var/run/docker.sock
+    #  - /root/.docker/config.json:/config.json - Enable this when using a custom repo
+    command: --interval 30 # change this interval to whatever suits you
     networks:
       - nat
-    restart: always
-##############################################################################################    
-  parent:
-    image: nginx
-    container_name: parent
-    networks:
-      - nat
-    restart: always
-####################################    
-  child:
-    image: nginx:alpine
-    labels:
-      com.centurylinklabs.watchtower.depends-on: parent
-    container_name: child
-    networks:
-      - nat
-    restart: always
 ################################################################
 networks:
   nat:
