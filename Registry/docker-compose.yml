@@ -4,9 +4,6 @@ services:
     container_name: registry_ui
     restart: unless-stopped
     environment:
-      - REGISTRY_TITLE=Docker Registry UI
-      - DELETE_IMAGES=true
-      - NGINX_PROXY_PASS_URL=http://registry-server:5000
       - X-WEBAUTH-USER=${X-WEBAUTH-USER}
     networks:
       -  nat:
