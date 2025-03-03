@@ -24,7 +24,7 @@ services:
       - WATCHTOWER_ROLLING_RESTART=true
       - WATCHTOWER_NOTIFICATIONS=gotify
       - WATCHTOWER_NOTIFICATION_GOTIFY_URL=https://gotify.jimsgarage.co.uk
-      - WATCHTOWER_NOTIFICATION_GOTIFY_TOKEN=/run/secrets/access_token
+      - WATCHTOWER_NOTIFICATION_GOTIFY_TOKEN=${WATCHTOWER_NOTIFICATION_GOTIFY_TOKEN}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     #  - /root/.docker/config.json:/config.json - Enable this when using a custom repo
