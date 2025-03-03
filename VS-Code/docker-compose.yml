@@ -1,0 +1,22 @@
+services:
+  openvscode-server:
+    image: lscr.io/linuxserver/openvscode-server:1.97.2
+    container_name: openvscode-server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angelos
+#      - CONNECTION_TOKEN= #optional
+#      - CONNECTION_SECRET= #optional
+      - SUDO_PASSWORD=password #optional
+      - SUDO_PASSWORD_HASH= #optional
+    volumes:
+      - /path/to/openvscode-server/config:/config
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    networks:
+      - nat
+networks:
+  nat:
+    external: true 
