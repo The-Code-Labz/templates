@@ -20,8 +20,6 @@ services:
     restart: unless-stopped
     container_name: registry-server    
     environment:
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[https://example.com]'
-      REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
       REGISTRY_STORAGE_DELETE_ENABLED: 'true'
       REGISTRY_AUTH: htpasswd
       REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
