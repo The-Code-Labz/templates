@@ -4,17 +4,10 @@ services:
     container_name: registry_ui
     restart: unless-stopped
     environment:
-      - SINGLE_REGISTRY=true
       - REGISTRY_TITLE=Docker Registry UI
       - DELETE_IMAGES=true
-      - SHOW_CONTENT_DIGEST=true
       - NGINX_PROXY_PASS_URL=http://registry-server:5000
-      - SHOW_CATALOG_NB_TAGS=true
-      - CATALOG_MIN_BRANCHES=1
-      - CATALOG_MAX_BRANCHES=1
-      - TAGLIST_PAGE_SIZE=100
-      - REGISTRY_SECURED=false
-      - CATALOG_ELEMENTS_LIMIT=1000
+      - X-WEBAUTH-USER=${X-WEBAUTH-USER}
     networks:
       -  nat
     labels:
@@ -23,7 +16,7 @@ services:
       - "traefik.http.routers.registry-ui.rule=Host(`example.com`)" # Replace with your desired hostname
       - "traefik.http.routers.registry-ui.tls=true"
       - "traefik.http.routers.registry-ui.tls.certresolver=cloudflare" # Replace with your cert resolver name
-      - "traefik.http.services.registry-ui.loadbalancer.server.port=80"
+      - "traefik.http.services.registry-ui.loadbalancer.server.port=8000"
 ###################################################      
   registry-server:
     image: registry:latest
@@ -33,8 +26,12 @@ services:
       REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin: '[https://example.com]'
       REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods: '[HEAD,GET,OPTIONS,DELETE]'
       REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: "Registry Realm"      
     volumes:
       - /path/to/your-containers:/var/lib/registry
+      - /auth:/auth
     labels: # Labels for registry-server service
           - "traefik.enable=true"
           - "traefik.http.routers.registry-server.entrypoints=websecure"
