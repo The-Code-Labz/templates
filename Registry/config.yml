@@ -1,5 +1,5 @@
 # Listen interface.
-listen_addr: 0.0.0.0:8000
+listen_addr: 0.0.0.0:80
 
 # Base path of Registry UI.
 uri_base_path: /
