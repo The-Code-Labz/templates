@@ -3,6 +3,7 @@ services:
     image: codercom/code-server:4.97.2-39
     container_name: code-server
     user: root
+    privileged: true
     environment:
       - PUID=1000
       - PGID=1000
@@ -16,6 +17,7 @@ services:
     volumes:
       - /path/to/code-server/config:/config
       - /path/to/workspace:/home/coder
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - 8080:8080
     restart: unless-stopped
