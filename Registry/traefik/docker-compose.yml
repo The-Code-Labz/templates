@@ -16,7 +16,7 @@ services:
       - REGISTRY_SECURED=false
       - CATALOG_ELEMENTS_LIMIT=1000
     networks:
-      -  nat:
+      -  nat
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.registry-ui.entrypoints=websecure"
