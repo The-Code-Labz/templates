@@ -9,8 +9,8 @@ services:
       - nat
     environment:
       - TZ=AMERICA/LOS_ANGELOS
-    ports:
-      - 80:80
+#    ports:
+#      - 80:80
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.gotify-secure.entrypoints=websecure"
