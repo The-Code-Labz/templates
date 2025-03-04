@@ -1,0 +1,16 @@
+services:
+  traefik-github-oauth-server:
+    container_name: traefik-github-oauth-server
+    networks:
+        - nat
+    environment:
+        - GITHUB_OAUTH_CLIENT_ID=<client-id>
+        - GITHUB_OAUTH_CLIENT_SECRET=<client-secret>
+        - API_BASE_URL=http://<traefik-github-oauth-server-host>
+    labels:
+        - traefik.http.services.traefik-github-oauth-server.loadbalancer.server.port=80
+        - traefik.http.routers.traefik-github-oauth-server.rule=Host(`<traefik-github-oauth-server-host>`)
+    image: muxiu1997/traefik-github-oauth-server
+networks:
+  nat:
+    external: true
