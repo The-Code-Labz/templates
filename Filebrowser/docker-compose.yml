@@ -1,0 +1,18 @@
+services:
+  filebrowser:
+    image: 'filebrowser/filebrowser:v2.32.0-s6'
+    container_name: filebrowser
+    restart: unless-stopped
+    environment:
+      - PGID=$(id -g)
+      - PUID=$(id -u)
+      - TZ=AMERICA/LOS_ANGELOS
+    volumes:
+      - '/settings.json:/config/settings.json'
+      - '/:/srv:rw'
+      - /path/to/filebrowser.db:/database/filebrowser.db
+    networks:
+      - nat
+network:
+  nat:
+    external: true           

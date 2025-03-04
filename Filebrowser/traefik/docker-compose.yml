@@ -1,0 +1,27 @@
+services:
+  filebrowser:
+    image: 'filebrowser/filebrowser:v2.32.0-s6'
+    container_name: filebrowser
+    restart: unless-stopped
+    environment:
+      - PGID=$(id -g)
+      - PUID=$(id -u)
+      - TZ=AMERICA/LOS_ANGELOS
+    volumes:
+      - '/settings.json:/config/settings.json'
+      - '/:/srv:rw'
+      - /path/to/filebrowser.db:/database/filebrowser.db
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.filebrowser.entrypoints=websecure" # Entrypoint for HTTPS
+      - "traefik.http.routers.filebrowser.rule=Host(`filebrowser.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.filebrowser.tls=true" # Enable TLS
+      - "traefik.http.routers.filebrowser.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.filebrowser.loadbalancer.server.port=80" # Port filebrowser listens on
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.filebrowser.service=filebrowser"  
+network:
+  nat:
+    external: true           
