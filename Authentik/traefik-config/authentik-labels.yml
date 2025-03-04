@@ -1,0 +1,3 @@
+labels:
+  - "traefik.http.routers.your-router.middlewares=authentik@file"
+  
