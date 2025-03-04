@@ -1,0 +1,21 @@
+services:    
+  uptime-kuma:
+    image: 'louislam/uptime-kuma:1.23.16'
+    container_name: uptime
+    volumes:
+      - '/uptime-kuma:/app/data'
+    restart: unless-stopped
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.uptime-kuma.entrypoints=websecure"
+      - "traefik.http.routers.uptime-kuma.rule=Host(`uptime.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.uptime-kuma.tls=true"
+      - "traefik.http.routers.uptime-kuma.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.uptime-kuma.loadbalancer.server.port=3001"
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.uptime-kuma.service=uptime-kuma"     
+networks:
+  nat:
+    external: true          
