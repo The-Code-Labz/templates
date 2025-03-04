@@ -1,0 +1,12 @@
+services:
+  adminer:
+    image: adminer:4.17.1
+    container_name: adminer
+    restart: unless-stopped
+    networks:
+      - nat
+    ports: 
+      - 8080:8080
+network:
+  nat:
+    external: true            

@@ -1,0 +1,21 @@
+services:
+  adminer:
+    image: adminer:4.17.1
+    container_name: adminer
+    restart: unless-stopped
+    networks:
+      - nat
+#    ports: 
+#      - 8080:8080
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.rule=Host(`adminer.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.adminer.tls=true"
+      - "traefik.http.routers.adminer.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.adminer.service=adminer"        
+network:
+  nat:
+    external: true            
