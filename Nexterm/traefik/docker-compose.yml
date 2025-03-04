@@ -7,8 +7,8 @@ services:
     image: germannewsmaker/nexterm:1.0.2-OPEN-PREVIEW
     networks:
       - nat
-    ports:
-      - 6989:6989      
+#    ports:
+#      - 6989:6989      
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nexterm.entrypoints=websecure"
