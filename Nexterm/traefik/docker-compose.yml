@@ -1,0 +1,23 @@
+services:
+  nexterm:
+    container_name: terminal
+    restart: unless-stopped
+    volumes:
+      - /terminal:/app/data
+    image: germannewsmaker/nexterm:1.0.2-OPEN-PREVIEW
+    networks:
+      - nat
+    ports:
+      - 6989:6989      
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nexterm.entrypoints=websecure"
+      - "traefik.http.routers.nexterm.rule=Host(`nexterm.headserver.neurolearninglabs.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.nexterm.tls=true"
+      - "traefik.http.routers.nexterm.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.nexterm.loadbalancer.server.port=6989"
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.nexterm.service=nexterm"      
+network:
+  nat:
+    external: true      
