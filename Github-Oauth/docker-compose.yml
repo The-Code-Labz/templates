@@ -4,8 +4,8 @@ services:
     networks:
         - nat
     environment:
-        - GITHUB_OAUTH_CLIENT_ID=<client-id>
-        - GITHUB_OAUTH_CLIENT_SECRET=<client-secret>
+        - GITHUB_OAUTH_CLIENT_ID=${GITHUB_OAUTH_CLIENT_ID}
+        - GITHUB_OAUTH_CLIENT_SECRET=${GITHUB_OAUTH_CLIENT_SECRET}
         - API_BASE_URL=http://<traefik-github-oauth-server-host>
     labels:
         - traefik.http.services.traefik-github-oauth-server.loadbalancer.server.port=80
