@@ -1,0 +1,25 @@
+services:
+  dozzle:
+    container_name: dozzle
+    restart: unless-stopped
+    image: amir20/dozzle:v8.11.7
+    environment:
+      - DOZZLE_REMOTE_AGENT=
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - nat
+#    ports:
+#      - 8080:8080
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dozzle.entrypoints=websecure"
+      - "traefik.http.routers.dozzle.rule=Host(`dozzle.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.dozzle.tls=true"
+      - "traefik.http.routers.dozzle.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.dozzle.loadbalancer.server.port=8080"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.dozzle.service=dozzle"    
+network:
+  nat:
+    external: true      

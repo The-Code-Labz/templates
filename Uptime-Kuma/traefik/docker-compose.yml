@@ -5,6 +5,8 @@ services:
     volumes:
       - '/uptime-kuma:/app/data'
     restart: unless-stopped
+#    ports:
+#      - 3001:3001
     networks:
       - nat
     labels:

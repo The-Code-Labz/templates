@@ -1,0 +1,16 @@
+services:
+  dozzle:
+    container_name: dozzle
+    restart: unless-stopped
+    image: amir20/dozzle:v8.11.7
+    environment:
+      - DOZZLE_REMOTE_AGENT=
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - nat
+    ports:
+      - 8080:8080
+network:
+  nat:
+    external: true      
