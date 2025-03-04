@@ -21,8 +21,8 @@ services:
     networks:
       - nat
     user: "${UID}:${GID}"
-    ports:
-      - 3000:3000
+#    ports:
+#      - 3000:3000
     environment:
       - SEMAPHORE_DB_USER=${MYSQL_USER}
       - SEMAPHORE_DB_PASS=${MYSQL_PASSWORD}  # change!
@@ -50,7 +50,7 @@ services:
       - "traefik.http.routers.semaphore.rule=Host(`semaphore.example.com`)" # Replace with your desired hostname
       - "traefik.http.routers.semaphore.tls=true"
       - "traefik.http.routers.semaphore.tls.certresolver=cloudflare" # Replace with your cert resolver name
-      - "traefik.http.services.semaphore.loadbalancer.server.port=your-port"       
+      - "traefik.http.services.semaphore.loadbalancer.server.port=3000"       
       - "traefik.docker.network=nat" 
       - "traefik.http.routers.semaphore.service=semaphore"
 networks:
