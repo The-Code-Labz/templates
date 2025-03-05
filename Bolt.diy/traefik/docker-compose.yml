@@ -1,6 +1,7 @@
 services:
   bolt.diy:
     image: otakulabz/bolt-diy:latest
+    container_name: boly-diy
 #    ports:
 #      - '5173:5173'
     environment:
