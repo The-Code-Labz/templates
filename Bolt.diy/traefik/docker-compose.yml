@@ -1,7 +1,6 @@
 services:
   bolt.diy:
-    image: registry.neurolearninglabs.com/code-labz/bolt-diy:latest
-    restart: unless-stopped
+    image: otakulabz/bolt-diy:latest
 #    ports:
 #      - '5173:5173'
     environment:
