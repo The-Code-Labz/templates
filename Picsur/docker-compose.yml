@@ -1,0 +1,41 @@
+services:
+  picsur:
+    image: ghcr.io/caramelfur/picsur:latest
+    container_name: picsur
+    environment:
+      PICSUR_HOST: 0.0.0.0
+      PICSUR_PORT: 8080
+      PICSUR_DB_HOST: picsur_postgres
+      PICSUR_DB_PORT: 5432
+      PICSUR_DB_USERNAME: ${DB_USER}
+      PICSUR_DB_PASSWORD: ${DB_PASS} # This has be same one as configured in the settings of picsur_postgres
+      ## Default admin username's password
+      PICSUR_ADMIN_PASSWORD: ${ADMIN_PASS}
+      PICSUR_JWT_SECRET: ${JWT_SECRET}
+      PICSUR_MAX_FILE_SIZE: 10240000000  # 100 MB
+      ## No need to touch this, unless you use a custom frontend
+      # PICSUR_STATIC_FRONTEND_ROOT: "/picsur/frontend/dist"
+      ## Warning: Verbose mode might log sensitive data
+      # PICSUR_VERBOSE: "true"
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    networks:
+      - nat    
+###############################################################################
+  picsur_postgres:
+    image: postgres:17-alpine
+    container_name: picsur_postgres
+    environment:
+      POSTGRES_DB: picsur
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+    restart: unless-stopped
+    volumes:
+      - /picsur:/var/lib/postgresql/data
+    networks:
+      - nat
+###############################################################################
+networks:
+  nat:
+    external: true
