@@ -2,8 +2,8 @@ services:
   bolt.diy:
     image: registry.neurolearninglabs.com/code-labz/bolt-diy:latest
     restart: unless-stopped
-    ports:
-      - '5173:5173'
+#    ports:
+#      - '5173:5173'
     environment:
       - NODE_ENV=production
       - COMPOSE_PROFILES=production
@@ -26,6 +26,15 @@ services:
     command: pnpm run dockerstart
     networks:
       - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bolt-diy.entrypoints=websecure"
+      - "traefik.http.routers.bolt-diy.rule=Host(`bolt-diy.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.bolt-diy.tls=true"
+      - "traefik.http.routers.bolt-diy.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.bolt-diy.loadbalancer.server.port=5173"       
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.bolt-diy.service=bolt-diy"
 networks:
   nat:
     external: true
