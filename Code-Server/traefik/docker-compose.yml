@@ -15,7 +15,7 @@ services:
     #  - DEFAULT_WORKSPACE=/home/coder #optional
     volumes:
       - /path/to/code-server/config:/config
-      - /path/to/workspace:/home/coder
+      - /path/to/workspace:/home/coder/code-server
   #  ports:
   #    - 8080:8080
     restart: unless-stopped
