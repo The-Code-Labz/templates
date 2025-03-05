@@ -23,12 +23,13 @@ services:
       - nat
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.code-server.rule=Host(`code-server.my.domain`)"
-      - "traefik.http.routers.code-server.entrypoints=web,websecure"
+      - "traefik.http.routers.code-server.entrypoints=websecure"
+      - "traefik.http.routers.code-server.rule=Host(`code-server.example.com`)" # Replace with your desired hostname
       - "traefik.http.routers.code-server.tls=true"
-      - "traefik.http.routers.code-server.tls.certresolver=myresolver" # Replace 'myresolver' with your actual cert resolver name
-      - "traefik.http.services.code-server.loadbalancer.server.port=8080"
-
+      - "traefik.http.routers.code-server.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.code-server.loadbalancer.server.port=8080"       
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.code-server.service=code-server"
 networks:
   nat:
     external: true
