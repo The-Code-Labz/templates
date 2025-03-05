@@ -1,10 +1,7 @@
 services:
-  app-prod:
-    image: bolt-ai:production
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: bolt-ai-production
+  bolt.diy:
+    image: registry.neurolearninglabs.com/code-labz/bolt-diy:latest
+    restart: unless-stopped
     ports:
       - '5173:5173'
     environment:
@@ -29,15 +26,6 @@ services:
     command: pnpm run dockerstart
     networks:
       - dokploy-network
-    profiles:
-      - production
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.bolt.rule=Host(`bolt.archive.neurolearninglabs.com`)"  # Replace with your domain
-      - "traefik.http.routers.bolt.entrypoints=websecure"
-      - "traefik.http.routers.bolt.tls=true"
-      - "traefik.http.routers.bolt.tls.certresolver=cloudflare"  # Use Cloudflare TLS resolver
-      - "traefik.http.services.bolt.loadbalancer.server.port=5173"  # Service port
 networks:
   dokploy-network:
     external: true
