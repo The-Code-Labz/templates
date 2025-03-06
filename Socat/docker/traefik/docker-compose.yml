@@ -16,6 +16,8 @@ services:
       - "traefik.tcp.routers.socat.tls.certresolver=cloudflare"
       # Define the service and port
       - "traefik.tcp.services.socat.loadbalancer.server.port=2376"
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.socat.service=socat"      
 networks:
   nat:
     external: true
