@@ -1,0 +1,12 @@
+tcp:
+  routers:
+    gitlab:
+      entryPoints: ["git"]  # make sure to make a entrypoint with the name git and add the port you want to use 
+      rule: "HostSNI(`*`)"
+      service: gitlab-tcp
+
+  services:
+    gitlab-tcp:
+      loadBalancer:
+        servers:
+          - address: "gitlab:2424"  # Replace with your actual GitLab service container or address

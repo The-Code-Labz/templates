@@ -1,0 +1,13 @@
+# TCP Routers and Services
+tcp:
+  routers:
+    socat:
+      entryPoints: ["socat"] # make sure to make a entrypoint with the name socat and add the port you want to use 
+      rule: "HostSNI(`*`)"
+      service: socat
+
+  services:
+    socat:
+      loadBalancer:
+        servers:
+          - address: "socat:2376"  # Replace with your actual socat service container or address

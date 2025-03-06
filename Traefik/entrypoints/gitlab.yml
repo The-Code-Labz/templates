@@ -1,6 +1,0 @@
-  tcp:
-    routers:
-      gitlab:
-        entryPoints: ["git"]
-        rule: "HostSNI(`*`)"
-        service: "gitlab"
