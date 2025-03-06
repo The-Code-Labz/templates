@@ -7,17 +7,16 @@ services:
     networks:
       - nat
     labels:
-      - "traefik.enable=true"      
-      # Define a TCP router with HostSNI
-      - "traefik.tcp.routers.socat.rule=HostSNI(`example.com`)"
-      - "traefik.tcp.routers.socat.entrypoints=socat"
-      # Enable TLS with Cloudflare as the resolver
+      - "traefik.enable=true"
+      # Define a TCP router with HostSNI to match the domain
+      - "traefik.tcp.routers.socat.rule=HostSNI(`example.com`)"  # Replace with your domain
+      - "traefik.tcp.routers.socat.entrypoints=socat"            # Bind to the socat entrypoint
+      # Enable TLS with Cloudflare as the certificate resolver
       - "traefik.tcp.routers.socat.tls=true"
       - "traefik.tcp.routers.socat.tls.certresolver=cloudflare"
-      # Define the service and port
-      - "traefik.tcp.services.socat.loadbalancer.server.port=2376"
-      - "traefik.docker.network=nat" 
-      - "traefik.http.routers.socat.service=socat"      
+      # Define the service and the forwarded port
+      - "traefik.tcp.services.socat.loadbalancer.server.address=unix:///var/run/docker.sock"
+      - "traefik.docker.network=nat"  # Ensure it's on the correct network
 networks:
   nat:
     external: true
