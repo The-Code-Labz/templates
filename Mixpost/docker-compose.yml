@@ -53,7 +53,7 @@ services:
     networks:
       - nat2
 ###########################################################################################################
-  redis-mixpost: # Renamed service for clarity
+  redis: # Renamed service for clarity
     image: 'redis:alpine'
     container_name: redis_mixpost_app # Renamed container for clarity
     restart: always

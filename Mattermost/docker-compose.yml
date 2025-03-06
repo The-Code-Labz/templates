@@ -35,7 +35,7 @@ services:
     ports:
       - 8065:8065
 ###########################################################################################################
-  postgres-mattermost:
+  postgres:
     image: 'postgres:16-alpine'
     volumes:
       - '/mattermost/postgres:/var/lib/postgresql/data' # Corrected volume mount - using dedicated directory

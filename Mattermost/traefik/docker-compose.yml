@@ -44,7 +44,7 @@ services:
       - "traefik.docker.network=nat" 
       - "traefik.http.routers.mattermost.service=mattermost"
 ###########################################################################################################
-  postgres-mattermost:
+  postgres:
     image: 'postgres:16-alpine'
     volumes:
       - '/mattermost/postgres:/var/lib/postgresql/data' # Corrected volume mount - using dedicated directory

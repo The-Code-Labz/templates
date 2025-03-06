@@ -43,7 +43,7 @@ services:
       - "traefik.docker.network=nat" 
       - "traefik.http.routers.postiz.service=postiz"
 #################################################################################### 
-  postiz-postgres:
+  postiz:
     image: postgres:17-alpine
     container_name: postiz-postgres
     restart: always
@@ -61,7 +61,7 @@ services:
       timeout: 3s
       retries: 3
 ##############################################################################      
-  postiz-redis:
+  postiz:
     image: redis:7.2
     container_name: postiz-redis
     restart: always

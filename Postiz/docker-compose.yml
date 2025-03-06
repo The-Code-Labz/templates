@@ -34,7 +34,7 @@ services:
       postiz-redis:
         condition: service_healthy
 #################################################################################### 
-  postiz-postgres:
+  postiz:
     image: postgres:17-alpine
     container_name: postiz-postgres
     restart: always
@@ -52,7 +52,7 @@ services:
       timeout: 3s
       retries: 3
 ##############################################################################      
-  postiz-redis:
+  postiz:
     image: redis:7.2
     container_name: postiz-redis
     restart: always
