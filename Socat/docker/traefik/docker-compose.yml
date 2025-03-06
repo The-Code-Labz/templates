@@ -1,0 +1,21 @@
+services:
+  socat:
+    image: alpine/socat
+    restart: always
+    command: TCP-LISTEN:2376,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock
+    container_name: socat-docker
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"      
+      # Define a TCP router with HostSNI
+      - "traefik.tcp.routers.socat.rule=HostSNI(`example.com`)"
+      - "traefik.tcp.routers.socat.entrypoints=socat"
+      # Enable TLS with Cloudflare as the resolver
+      - "traefik.tcp.routers.socat.tls=true"
+      - "traefik.tcp.routers.socat.tls.certresolver=cloudflare"
+      # Define the service and port
+      - "traefik.tcp.services.socat.loadbalancer.server.port=2376"
+networks:
+  nat:
+    external: true

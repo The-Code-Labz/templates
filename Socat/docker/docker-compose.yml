@@ -1,9 +1,9 @@
 services:
   socat:
     image: alpine/socat
-    container_name: socat
+    container_name: socat-docker
     ports:
-      - "2375:2375"
+      - "2376:2375"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: TCP-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock
