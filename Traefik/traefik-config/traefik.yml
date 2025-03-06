@@ -1,11 +1,15 @@
 global:
   sendAnonymousUsage: false
+#####################################
 log:
-  level: INFO
+  level: DEBUG
   format: common
+##################################
+accessLog: {}
 api:
   dashboard: true
   debug: true
+###################################
 entryPoints:
   web:
     address: ":80"
@@ -16,6 +20,13 @@ entryPoints:
           scheme: https
   websecure:
     address: ":443"
+###################################################
+metrics:
+  prometheus:
+    entryPoint: metrics
+    addServicesLabels: true # Add service labels to metrics
+    addRoutersLabels: true  # Add router labels to metrics
+###################################################################
 serversTransport:
   insecureSkipVerify: true
 providers:
@@ -26,10 +37,11 @@ providers:
   file:
     directory: /config
     watch: true
+#############################################################
 certificatesResolvers:
   cloudflare:
     acme:
-      email: 
+      email: dlynton1@outlook.com
       storage: acme.json
       caServer: https://acme-v02.api.letsencrypt.org/directory # prod (default)
      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory # staging
