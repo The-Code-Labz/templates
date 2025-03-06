@@ -41,7 +41,7 @@ providers:
 certificatesResolvers:
   cloudflare:
     acme:
-      email: dlynton1@outlook.com
+      email: example@example.com
       storage: acme.json
       caServer: https://acme-v02.api.letsencrypt.org/directory # prod (default)
      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory # staging
