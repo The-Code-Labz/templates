@@ -1,3 +1,4 @@
 labels:
+  - "traefik.http.routers.dozzle2.middlewares=ipWhitelist@file" 
   - "traefik.http.routers.your-router.middlewares=authentik@file"
   
