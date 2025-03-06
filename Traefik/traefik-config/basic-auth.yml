@@ -1,0 +1,7 @@
+http:
+  middlewares:
+    no-auth:
+      ipWhiteList:
+        sourceRange:
+          - "192.168.1.100/32"  # First specific IP
+          - "192.168.1.101/32"  # Second specific IP
