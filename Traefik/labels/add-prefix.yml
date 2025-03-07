@@ -1,2 +1,3 @@
 labels:
-  - "traefik.http.middlewares.your-router.addprefix.prefix=/your-prefix"  #add your path to the end of your url 
+  - "traefik.http.middlewares.your-router-addprefix.addprefix.prefix=/your-prefix"  #add your path to the end of your url 
+  - "traefik.http.routers.your-router-addprefix.middlewares=pihole-mobile-addprefix@docker"
