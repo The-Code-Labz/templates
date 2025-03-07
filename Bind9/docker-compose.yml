@@ -4,6 +4,8 @@ services:
     container_name: bind9
     environment:
       - DEBUG=true  #optional
+      - BIND9_USER=root
+      - TZ=America/Los_Angelos
     ports:
       - "53:53"
     volumes:
