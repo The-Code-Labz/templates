@@ -9,6 +9,7 @@ accessLog: {}
 api:
   dashboard: true
   debug: true
+  insecure: true
 ###################################
 entryPoints:
   web:
