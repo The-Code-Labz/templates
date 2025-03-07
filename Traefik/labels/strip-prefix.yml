@@ -1,2 +1,2 @@
 labels:
-  - "traefik.http.middlewares.your-router-stripprefix.stripprefix.prefixes=/your-prefix"
+  - "traefik.http.middlewares.your-router-stripprefix.stripprefix.prefixes=/your-prefix" - "traefik.http.middlewares.your-router.addprefix.prefix=/your-prefix"  #remove your path from the end of your url 
