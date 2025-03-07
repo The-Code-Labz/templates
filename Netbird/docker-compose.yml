@@ -1,18 +1,23 @@
 services:
-    netbird:
-        image: 'netbirdio/netbird:0.37.1'
-        container_name: netbird
-        restart: unless-stopped
-      #  hostname: netbird  #(optional) changes your name inside netbird ui 
-        environment:
-        #    - 'NB_MANAGEMENT_URL=https://yournetbird.com' #(optional) only if you self host your own netbird server
-            - NB_SETUP_KEY=${NB_SETUP_KEY}
-        volumes:
-            - 'netbird-client:/etc/netbird'
-        networks:
-           - nat
-        cap_add:
-            - NET_ADMIN
+  netbird:
+    image: 'netbirdio/netbird:0.37.1'
+    container_name: netbird
+    restart: unless-stopped
+#    hostname: netbird  #(optional) changes your name inside netbird ui 
+    environment:
+#      - 'NB_MANAGEMENT_URL=https://yournetbird.com' #(optional) only if you self host your own netbird server
+      - NB_SETUP_KEY=${NB_SETUP_KEY}
+    volumes:
+      - 'netbird-client:/etc/netbird'
+    networks:
+      - nat
+    cap_add:
+      - NET_ADMIN
+#    healthcheck:      #(optinal) if you want to make sure your netbird container is connected
+#    test: ["CMD", "pgrep", "netbird"]
+#    interval: 30s
+#    timeout: 5s
+#    retries: 3
 networks:
-    nat:
-        external: true
+  nat:
+    external: true

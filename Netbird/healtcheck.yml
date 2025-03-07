@@ -1,0 +1,5 @@
+healthcheck:
+  test: ["CMD", "pgrep", "netbird"]
+  interval: 30s
+  timeout: 5s
+  retries: 3
