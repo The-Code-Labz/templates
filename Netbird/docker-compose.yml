@@ -13,6 +13,7 @@ services:
       - nat
     cap_add:
       - NET_ADMIN
+      - SYS_MODULE
 #    healthcheck:      #(optinal) if you want to make sure your netbird container is connected
 #    test: ["CMD", "pgrep", "netbird"]
 #    interval: 30s
