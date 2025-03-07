@@ -1,0 +1,4 @@
+labels:
+  - "traefik.http.middlewares.your-service-redirect.redirectregex.regex=^https://example.com/?$$"
+  - "traefik.http.middlewares.your-service-redirect.redirectregex.replacement=https://example.com/your-path"
+  - "traefik.http.routers.your-router.middlewares=your-service-redirect"
