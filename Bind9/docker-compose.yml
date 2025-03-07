@@ -14,4 +14,5 @@ services:
     networks:
       - nat
 networks:
-  - nat
+  nat:
+   external: true
