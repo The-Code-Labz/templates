@@ -2,7 +2,7 @@ global:
   sendAnonymousUsage: false
 #####################################
 log:
-  level: DEBUG
+  level: INFO    # (optional for testing) DEBUG
   format: common
 ##################################
 accessLog: {}
