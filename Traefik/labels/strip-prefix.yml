@@ -1,3 +1,2 @@
 labels:
-  - "traefik.http.middlewares.your-router.addprefix.prefix=/your-prefix"
   - "traefik.http.middlewares.your-router-stripprefix.stripprefix.prefixes=/your-prefix"

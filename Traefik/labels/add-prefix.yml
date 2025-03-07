@@ -1,0 +1,2 @@
+labels:
+  - "traefik.http.middlewares.your-router.addprefix.prefix=/your-prefix"
