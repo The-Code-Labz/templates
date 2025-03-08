@@ -16,16 +16,16 @@ nginx['listen_https'] = false
 # registry_nginx['listen_port']     = 5678  # <-- Replace with your registry port
 # <--
 
-## Enable GitLab Pages
+## Enable GitLab Pages --------------------------------------->
 #pages_external_url "https://pages.example.com"
 
 #gitlab_pages['enable'] = true
 #gitlab_pages['redirect_http'] = false # Change to `true` if you want automatic HTTPS redirection
 #gitlab_pages['access_control'] = true  # Set to true if you want private Pages
-
+#pages_nginx['enable'] = false  # If using Traefik, disable GitLab's internal NGINX
 ## Set the listen address and port
 #gitlab_pages['listen_proxy'] = "0.0.0.0:8090"
-
+#<----------------------------------------------
 
 
 # --> (Optional) Add Authentik settings here...
