@@ -40,7 +40,7 @@ services:
 # <---------------------------------------------------------------------------  
 
 #pages (optional)   --------------------------------------------------------->
-#      - "traefik.http.routers.gitlab-pages.rule=Host(`*.pages.example.com`)"  # Wildcard domain for GitLab Pages
+#      traefik.http.routers.pages.rule=HostRegexp(`^(?i)(?:[a-zA-Z0-9-]+\.)*pages\.example\.com$`)  # Wildcard domain for GitLab Pages
 #      - "traefik.http.routers.gitlab-pages.entrypoints=web-secure"  # Route over HTTPS
 #      - "traefik.http.routers.gitlab-pages.tls=true"  # Enable TLS
 #      - "traefik.http.routers.gitlab-pages.tls.certresolver=letsencrypt"  # Use Let's Encrypt for TLS
