@@ -1,9 +1,11 @@
-labels:
-    - "traefik.enable=true"
-    - "traefik.http.routers.your-router.entrypoints=websecure"
-    - "traefik.http.routers.your-router.rule=Host(`example.com`)" # Replace with your desired hostname
-    - "traefik.http.routers.your-router.tls=true"
-    - "traefik.http.routers.your-router.tls.certresolver=cloudflare" # Replace with your cert resolver name
-    - "traefik.http.services.your-router.loadbalancer.server.port=your-port"       
-    - "traefik.docker.network=nat" 
-    - "traefik.http.routers.your-router.service=service-name"
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.rule=Host(`adminer.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.adminer.tls=true"
+      - "traefik.http.routers.adminer.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.adminer.service=adminer"  
+      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+      - "traefik.http.routers.adminer.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
