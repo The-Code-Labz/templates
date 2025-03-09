@@ -21,9 +21,9 @@ services:
       - SERVER_COUNTRIES=United States
       - SERVER_REGIONS=America
       - SERVER_CITIES=
-      - TZ=
-      - HTTPPROXY=on
-      - SHADOWSOCKS=on
+      - TZ=AMERICA/LOS_ANGELOS  
+      - HTTPPROXY=on   #(optional)
+      - SHADOWSOCKS=on  #(optional)
 networks:
   nat:
     external: true

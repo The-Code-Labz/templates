@@ -1,0 +1,28 @@
+services:
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:11.5.2
+    ports:
+      - 3000:3000
+    environment:
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - ./grafana:/var/lib/grafana
+      - ./grafana:/etc/grafana/provisioning
+    restart: always
+    networks:
+      - nat
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.grafana.entrypoints=websecure"
+#      - "traefik.http.routers.grafana.rule=Host(`grafana.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.grafana.tls=true"
+#      - "traefik.http.routers.grafana.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.grafana.loadbalancer.server.port=3000"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.grafana.service=grafana"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.grafana.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+networks:
+  nat:
+    external: true

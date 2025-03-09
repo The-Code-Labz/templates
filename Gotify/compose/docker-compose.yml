@@ -1,0 +1,27 @@
+services:
+  gotify:
+    image: gotify/server
+    container_name: gotify
+    volumes:
+      - ./gotify:/app/data
+    restart: unless-stopped
+    networks:
+      - nat
+    environment:
+      - TZ=AMERICA/LOS_ANGELOS
+    ports:
+      - 8080:80
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.gotify.entrypoints=websecure"
+#      - "traefik.http.routers.gotify.rule=Host(`gotify.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.gotify.tls=true"
+#      - "traefik.http.routers.gotify.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.gotify.loadbalancer.server.port=80"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.gotify.service=gotify"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.gotify.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+networks:
+  nat:
+    external: true      

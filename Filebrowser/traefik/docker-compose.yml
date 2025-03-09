@@ -4,24 +4,27 @@ services:
     container_name: filebrowser
     restart: unless-stopped
     environment:
-      - PGID=$(id -g)
-      - PUID=$(id -u)
+      - PGID=$(PGID)
+      - PUID=$(PUID)
       - TZ=AMERICA/LOS_ANGELOS
     volumes:
-      - '/settings.json:/config/settings.json'
+      - './settings.json:/config/settings.json'
       - '/:/srv:rw'
-      - /path/to/filebrowser.db:/database/filebrowser.db
+#    ports:
+#      - 8080:80
     networks:
       - nat
-    labels:
+    labels: # (optional only for using traefik) ------>
       - "traefik.enable=true"
-      - "traefik.http.routers.filebrowser.entrypoints=websecure" # Entrypoint for HTTPS
+      - "traefik.http.routers.filebrowser.entrypoints=websecure"
       - "traefik.http.routers.filebrowser.rule=Host(`filebrowser.example.com`)" # Replace with your desired hostname
-      - "traefik.http.routers.filebrowser.tls=true" # Enable TLS
+      - "traefik.http.routers.filebrowser.tls=true"
       - "traefik.http.routers.filebrowser.tls.certresolver=cloudflare" # Replace with your cert resolver name
-      - "traefik.http.services.filebrowser.loadbalancer.server.port=80" # Port filebrowser listens on
+      - "traefik.http.services.filebrowser.loadbalancer.server.port=80"    
       - "traefik.docker.network=nat" 
       - "traefik.http.routers.filebrowser.service=filebrowser"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.filebrowser.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
 network:
   nat:
     external: true           

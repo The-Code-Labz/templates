@@ -11,27 +11,27 @@ services:
       - ./config:/etc/gitlab
       - ./logs:/var/log/gitlab
       - ./gitlab-data:/var/opt/gitlab
-#    ports:
-#      - "80:80"
-#      - "443:443"
-#      - '2424:22' #change as needed for whatever port for tcp routers config check traefik templates folder  
-    labels:  # (optional only for using traefik) ------>
-      - "traefik.enable=true"
-      - traefik.enable=true
-      - traefik.http.services.gitlab.loadbalancer.server.port=80
-      - traefik.http.routers.gitlab.service=gitlab
-      - traefik.http.routers.gitlab.rule=Host(`your-gitlab-fqdn`)
-      - traefik.http.routers.gitlab.entrypoints=websecure
-      - traefik.http.routers.gitlab.tls=true
-      - traefik.http.routers.gitlab.tls.certresolver=cloudflare
-      - "traefik.docker.network=nat" 
-      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
-      - "traefik.http.routers.your-router.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+    ports:
+      - "80:80"
+      - "443:443"
+      - '2424:22' #change as needed for whatever port for tcp routers config check traefik templates folder  
+#    labels:  # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - traefik.enable=true
+#      - traefik.http.services.gitlab.loadbalancer.server.port=80
+#      - traefik.http.routers.gitlab.service=gitlab
+#      - traefik.http.routers.gitlab.rule=Host(`your-gitlab-fqdn`)
+#      - traefik.http.routers.gitlab.entrypoints=websecure
+#      - traefik.http.routers.gitlab.tls=true
+#      - traefik.http.routers.gitlab.tls.certresolver=cloudflare
+#      - "traefik.docker.network=nat" 
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.your-router.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
 # tcp routers for ssh port 2424 or whatever you chose
-      - traefik.tcp.routers.gitlab-tcp.rule=HostSNI(`*`)
-      - traefik.tcp.routers.gitlab-tcp.entrypoints=git
-      - traefik.tcp.routers.gitlab-tcp.service=gitlab-tcp
-      - traefik.tcp.services.gitlab-tcp.loadbalancer.server.port=2424  
+#      - traefik.tcp.routers.gitlab-tcp.rule=HostSNI(`*`)
+#      - traefik.tcp.routers.gitlab-tcp.entrypoints=git
+#      - traefik.tcp.routers.gitlab-tcp.service=gitlab-tcp
+#      - traefik.tcp.services.gitlab-tcp.loadbalancer.server.port=2424  
 #registry (optional) -------------------------------------------------------------->
 #      - traefik.http.services.registry.loadbalancer.server.port=5678
 #      - traefik.http.services.registry.loadbalancer.server.scheme=http
