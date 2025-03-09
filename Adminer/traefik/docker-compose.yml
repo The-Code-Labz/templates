@@ -3,11 +3,11 @@ services:
     image: adminer:4.17.1
     container_name: adminer
     restart: unless-stopped
-    networks:
+    networks: 
       - nat
 #    ports: 
-#      - 8080:8080
-    labels:
+#      - 8080:8080  # (optional when using a reverse proxy like traefik or nginx-proxy manager)
+    labels: # (optional only for using traefik)
       - "traefik.enable=true"
       - "traefik.http.routers.adminer.entrypoints=websecure"
       - "traefik.http.routers.adminer.rule=Host(`adminer.example.com`)" # Replace with your desired hostname
@@ -15,7 +15,9 @@ services:
       - "traefik.http.routers.adminer.tls.certresolver=cloudflare" # Replace with your cert resolver name
       - "traefik.http.services.adminer.loadbalancer.server.port=8080"    
       - "traefik.docker.network=nat" 
-      - "traefik.http.routers.adminer.service=adminer"        
-network:
+      - "traefik.http.routers.adminer.service=adminer"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.adminer.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+network:  
   nat:
-    external: true            
+  external: true            
