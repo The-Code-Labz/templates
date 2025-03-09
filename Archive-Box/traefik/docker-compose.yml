@@ -34,7 +34,7 @@ services:
              - "traefik.http.routers.archivebox.rule=Host(`archivebox.example.com`)" # Replace with your desired hostname
              - "traefik.http.routers.archivebox.tls=true"
              - "traefik.http.routers.archivebox.tls.certresolver=cloudflare" # Replace with your cert resolver name
-             - "traefik.http.services.archivebox.loadbalancer.server.port=8080"    
+             - "traefik.http.services.archivebox.loadbalancer.server.port=8000"    
              - "traefik.docker.network=nat" 
              - "traefik.http.routers.archivebox.service=archivebox"  
 #             - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
