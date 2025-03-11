@@ -19,7 +19,7 @@ services:
       - nat2
 ###########################################################################################
   kestra:
-    image: kestra/kestra:v0.21.4
+    image: kestra/kestra:v0.21.5
     pull_policy: always
     user: "root"
     command: server standalone
