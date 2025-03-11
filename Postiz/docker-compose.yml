@@ -53,7 +53,7 @@ services:
       retries: 3
 ##############################################################################      
   postiz:
-    image: redis:7.2
+    image: redis:7.4
     container_name: postiz-redis
     restart: always
     healthcheck:
