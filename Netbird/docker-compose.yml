@@ -1,6 +1,6 @@
 services:
   netbird:
-    image: 'netbirdio/netbird:0.37.1'
+    image: 'netbirdio/netbird:0.38.0'
     container_name: netbird
     restart: unless-stopped
 #    hostname: netbird  #(optional) changes your name inside netbird ui 
