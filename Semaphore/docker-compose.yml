@@ -17,7 +17,7 @@ services:
 ###########################################################    
   semaphore:
     container_name: semaphore
-    image: docker.io/semaphoreui/semaphore:v2.12.14
+    image: docker.io/semaphoreui/semaphore:v2.12.17
     networks:
       - nat
     user: "${UID}:${GID}"
