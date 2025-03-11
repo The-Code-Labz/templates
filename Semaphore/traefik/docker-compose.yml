@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: docker.io/library/mysql:8.4
+    image: docker.io/library/mysql:9.2
     hostname: mysql
     container_name: mysql_semaphore
     volumes:
