@@ -2,7 +2,7 @@ services:
   dozzle:
     container_name: dozzle
     restart: unless-stopped
-    image: amir20/dozzle:v8.11.7
+    image: amir20/dozzle:v8.11.9
     environment:
 #      - DOZZLE_REMOTE_AGENT=  #(optional for when you want to monitor other machines docker logs)
     volumes:
