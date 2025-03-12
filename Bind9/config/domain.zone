@@ -1,0 +1,15 @@
+$TTL 2d
+
+$ORIGIN domain.
+
+@               IN      SOA     ns.domain. user.domain. (
+                                2022122800      ; serial
+                                12h             ; refresh
+                                15m             ; retry
+                                3w              ; expire
+                                2h              ; minimum ttl
+                                )
+
+                IN      NS      domain.
+
+ns              IN      A       10.20.3.4  #(ip addres of the bind9 server)
