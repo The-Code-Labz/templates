@@ -55,7 +55,7 @@ services:
       - nat
 ##################################################################################################     
   meilisearch:
-    image: 'getmeili/meilisearch:v1.6'
+    image: 'getmeili/meilisearch:v1.13'
     environment:
       MEILI_NO_ANALYTICS: '${MEILI_NO_ANALYTICS:-true}'
       NEXTAUTH_SECRET: '${SECRET}'

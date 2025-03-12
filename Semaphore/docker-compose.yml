@@ -1,6 +1,6 @@
 services:
   mysql:
-    image: docker.io/library/mysql:8.4
+    image: docker.io/library/mysql:9.2
     hostname: mysql
     container_name: mysql_semaphore
     volumes:
@@ -17,7 +17,7 @@ services:
 ###########################################################    
   semaphore:
     container_name: semaphore
-    image: docker.io/semaphoreui/semaphore:v2.12.14
+    image: docker.io/semaphoreui/semaphore:v2.12.17
     networks:
       - nat
     user: "${UID}:${GID}"
