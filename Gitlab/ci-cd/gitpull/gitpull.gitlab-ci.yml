@@ -1,0 +1,38 @@
+stages:
+  - sync
+
+sync:
+  stage: sync
+  image: ubuntu:latest
+  before_script:
+    # Install dependencies
+    - apt-get update -y
+    - apt-get install -y git openssh-client
+    # Set up SSH
+    - mkdir -p ~/.ssh
+    - echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - echo -e "Host 'your gitlab url or github url'\n  Port yourport" > ~/.ssh/config
+    - chmod 600 ~/.ssh/config
+    - ssh-keyscan -p yourport 'your gitlab url or github url' >> ~/.ssh/known_hosts
+  script:
+    # Remove remote if it exists
+    - git remote remove upstream || true
+    # Add the upstream repository
+    - git remote add upstream "${SOURCE_REPO}"
+    # Fetch changes from upstream
+    - git fetch upstream
+    # Checkout the branch
+    - git checkout -b "${SOURCE_BRANCH}" upstream/"${SOURCE_BRANCH}" || git checkout "${SOURCE_BRANCH}"
+    # Merge changes from upstream
+    - git merge upstream/"${SOURCE_BRANCH}" || true
+    # Fetch and pull the latest changes from the origin repository
+    - git fetch origin
+    - git pull origin "${TARGET_BRANCH}" || true
+    # Push changes to origin using SSH
+    - git remote set-url origin git@your-repo-url
+    - git push origin "${TARGET_BRANCH}"
+  variables:
+    SOURCE_REPO: "source-repo url"
+    SOURCE_BRANCH: "main"
+    TARGET_BRANCH: "main"
