@@ -1,0 +1,34 @@
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:nightly
+    container_name: homepage
+    environment:
+      PUID: 1000 # optional, your user id
+      PGID: 1000 # optional, your group id
+    volumes:
+      - ./config:/app/config # Make sure your local config directory exists
+      - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
+    restart: unless-stopped
+    networks:
+      - nat
+    ports:
+      - 3000:3000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.hompage.entrypoints=websecure"
+#      - "traefik.http.routers.hompage.rule=Host(`hompage.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.hompage.tls=true"
+#      - "traefik.http.routers.hompage.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.hompage.loadbalancer.server.port=3000"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.hompage.service=hompage"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.hompage.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+network:
+  nat:
+    external: true                

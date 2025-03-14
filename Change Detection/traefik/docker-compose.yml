@@ -8,11 +8,19 @@ services:
       - PLAYWRIGHT_DRIVER_URL=ws://playwright-chrome:3000
     volumes:
       - ./data/datastore:/datastore
-    ports:
-      - 5000:5000
+#    ports:
+#      - 5000:5000
     networks:
       - nat
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+    depends_on:
+      playwright-chrome:
+        condition: service_healthy
     labels: # (optional only for using traefik) ------>
       - "traefik.enable=true"
       - "traefik.http.routers.change-detection.entrypoints=websecure"
@@ -27,7 +35,7 @@ services:
 ###################################################################################
   playwright-chrome:
     hostname: changedetection-chrome
-    image: browserless/chrome
+    image: browserless/chrome:latest
     restart: unless-stopped
     ports:
       - 3000
@@ -46,7 +54,12 @@ services:
       - DEFAULT_IGNORE_HTTPS_ERRORS=true    
     networks:
       - nat
-    restart: unless-stopped      
+    restart: unless-stopped  
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 1m
+      timeout: 10s
+      retries: 3    
 networks:
   nat:
     external: true    

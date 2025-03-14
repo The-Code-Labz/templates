@@ -7,6 +7,11 @@ services:
       - nat
     ports:   
       - 8080:8080  # (optional when using a reverse proxy like traefik or nginx-proxy manager)
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-S", "http://localhost:8080"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
 #    labels: # (optional only for using traefik) ------>
 #      - "traefik.enable=true"
 #      - "traefik.http.routers.adminer.entrypoints=websecure"

@@ -58,6 +58,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      worker:
+        condition: service_healthy
     networks:
       - nat  
     labels: # (optional only for using traefik) ------>
@@ -98,6 +100,12 @@ services:
         condition: service_healthy
     networks:
       - nat 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
 ########################################################            
 networks:
   nat:

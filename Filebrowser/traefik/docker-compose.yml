@@ -12,6 +12,11 @@ services:
       - '/:/srv:rw'
 #    ports:
 #      - 8080:80
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
     networks:
       - nat
     labels: # (optional only for using traefik) ------>

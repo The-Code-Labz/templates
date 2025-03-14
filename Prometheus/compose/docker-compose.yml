@@ -1,0 +1,31 @@
+services:
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v3.2.1
+    restart: always
+    networks:
+      - nat
+    volumes:
+      - ./config/:/etc/prometheus/
+      - ./prometheus:/prometheus/
+    ports:
+      - 9090:9090
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.prometheus.entrypoints=websecure"
+#      - "traefik.http.routers.prometheus.rule=Host(`prometheus.your-server.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.prometheus.tls=true"
+#      - "traefik.http.routers.prometheus.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.prometheus.service=prometheus"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.prometheus.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+networks:
+  nat:
+   external: true

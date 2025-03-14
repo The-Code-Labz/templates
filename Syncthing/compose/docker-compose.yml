@@ -1,0 +1,38 @@
+services:
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:1.29.2
+    container_name: syncthing
+    ports:
+      - 8384:8384
+      - 22000:22000   # (optional if using syncthing discovery)
+      - 21027:21027/udp # (optional if using syncthing discovery)
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=AMERICA/LOS_ANGELOS
+    volumes:
+      - ./config:/config
+      - /path/to/data1:/data1
+  #    - /path/to/data2:/data2
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8384"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    networks:
+      -  nat
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.syncthing.entrypoints=websecure"
+#      - "traefik.http.routers.syncthing.rule=Host(`syncthing.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.syncthing.tls=true"
+#      - "traefik.http.routers.syncthing.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.syncthing.loadbalancer.server.port=8384"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.syncthing.service=syncthing"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.syncthing.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+networks:
+  nat:
+    external: true

@@ -1,23 +1,30 @@
 services:
   nexterm:
+    image: germannewsmaker/nexterm:1.0.2-OPEN-PREVIEW
     container_name: terminal
     restart: unless-stopped
     volumes:
-      - /terminal:/app/data
-    image: germannewsmaker/nexterm:1.0.2-OPEN-PREVIEW
+      - ./terminal:/app/data
     networks:
       - nat
 #    ports:
-#      - 6989:6989      
-    labels:
+#      - 6989:6989     
+    healthcheck:
+      test: ["CMD", "pgrep", "nexterm"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels: # (optional only for using traefik) ------>
       - "traefik.enable=true"
-      - "traefik.http.routers.nexterm.entrypoints=websecure"
-      - "traefik.http.routers.nexterm.rule=Host(`nexterm.headserver.neurolearninglabs.com`)" # Replace with your desired hostname
-      - "traefik.http.routers.nexterm.tls=true"
-      - "traefik.http.routers.nexterm.tls.certresolver=cloudflare" # Replace with your cert resolver name
-      - "traefik.http.services.nexterm.loadbalancer.server.port=6989"
+      - "traefik.http.routers.terminal.entrypoints=websecure"
+      - "traefik.http.routers.terminal.rule=Host(`terminal.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.terminal.tls=true"
+      - "traefik.http.routers.terminal.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.terminal.loadbalancer.server.port=6989"    
       - "traefik.docker.network=nat" 
-      - "traefik.http.routers.nexterm.service=nexterm"      
+      - "traefik.http.routers.terminal.service=terminal"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.terminal.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)    
 network:
   nat:
     external: true      

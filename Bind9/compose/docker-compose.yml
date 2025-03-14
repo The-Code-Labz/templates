@@ -15,6 +15,11 @@ services:
     restart: unless-stopped
     networks:
       - nat
+    healthcheck:
+      test: ["CMD", "dig", "+short", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 networks:
   nat:
    external: true

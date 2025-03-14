@@ -6,14 +6,37 @@
       - no-new-privileges:true
     networks:
       - nat
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # (optional if using traefik dashboard)
     environment:
       CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN} # if using .env
+      CF_API_EMAIL: ${CF_API_EMAIL} # if using .env
+      HTPasswd: ${HTPasswd} # if using .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:443"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /config/traefik.yml:/traefik.yml:ro
-      - /certificates/acme.json:/acme.json:rw
-      - /config:/config
+      - ./config/traefik.yml:/traefik.yml:ro
+      - ./certificates/acme.json:/acme.json:rw
+      - ./config:/config
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.routers.traefik.service=api@internal"
+#      - "traefik.http.routers.traefik.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+#      - "traefik.http.middlewares.authentik.basicauth.usersfile=/config/auth/traefik-users" # (optional if using authentik or basic auth to protect your site)
+#      - "traefik.http.routers.traefik.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+      - "traefik.docker.network=nat"
+#      - "com.centurylinklabs.watchtower.enable=true" # (optional if using watchtower for updates)
 ################################################### 
 networks:
   nat:

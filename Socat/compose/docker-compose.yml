@@ -1,0 +1,22 @@
+services:
+  socat:
+    image: alpine/socat
+    pull: always
+    restart: always
+    container_name: socat-docker
+    ports:
+      - "5000:2375"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: TCP-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock
+    restart: always
+    healthcheck:
+      test: ["CMD", "socat", "-h"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+    networks:
+      -  nat
+networks:
+  nat:
+    external: true

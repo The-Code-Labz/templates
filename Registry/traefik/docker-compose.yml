@@ -1,6 +1,7 @@
 services:
   registry-ui:
     image: chickenbellyfin/registry-ui:latest
+    pull: always
     container_name: registry-ui
     restart: unless-stopped
     environment:
@@ -11,18 +12,33 @@ services:
       - APP_THEME=dark
       - APP_DEBUG=true
     networks:
-      -  nat
-    labels:
+      -  nat:
+#    ports:
+#      - 8000:8000
+    depends_on:
+      registry-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    labels: # (optional only for using traefik) ------>  
       - "traefik.enable=true"
       - "traefik.http.routers.registry-ui.entrypoints=websecure"
-      - "traefik.http.routers.registry-ui.rule=Host(`example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.registry-ui.rule=Host(`registry-ui.example.com`)" # Replace with your desired hostname
       - "traefik.http.routers.registry-ui.tls=true"
       - "traefik.http.routers.registry-ui.tls.certresolver=cloudflare" # Replace with your cert resolver name
       - "traefik.http.services.registry-ui.loadbalancer.server.port=8000"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.registry-ui.service=registry-ui"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.registry-ui.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
 ###################################################      
   registry-server:
     image: registry:latest
     restart: unless-stopped
+    pull: always
     container_name: registry-server    
     environment:
       REGISTRY_STORAGE_DELETE_ENABLED: 'true'
@@ -31,17 +47,28 @@ services:
       REGISTRY_AUTH_HTPASSWD_REALM: "Registry Realm"      
     volumes:
       - /path/to/your-containers:/var/lib/registry
-      - /auth:/auth
-    labels: # Labels for registry-server service
-          - "traefik.enable=true"
-          - "traefik.http.routers.registry-server.entrypoints=websecure"
-          - "traefik.http.routers.registry-server.rule=Host(`example.com`)" # Replace with your desired hostname for registry API
-          - "traefik.http.routers.registry-server.tls=true"
-          - "traefik.http.routers.registry-server.tls.certresolver=cloudflare" # Replace with your cert resolver name
-          - "traefik.http.services.registry-server.loadbalancer.server.port=5000" # Registry server port
+      - ./auth:/auth
+#    ports:
+#      - 5000:5000
     networks:
       -  nat
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.http.routers.registry-server.entrypoints=websecure"
+      - "traefik.http.routers.registry-server.rule=Host(`registry-server.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.registry-server.tls=true"
+      - "traefik.http.routers.registry-server.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.registry-server.loadbalancer.server.port=5000"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.registry-server.service=registry-server"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.registry-server.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
 ################################      
 networks:
-    nat:
-        external: true
+  nat:
+    external: true

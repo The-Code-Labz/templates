@@ -58,6 +58,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      worker:
+        condition: service_healthy
     networks:
       - nat  
 #    labels: # (optional only for using traefik) ------>
@@ -98,6 +100,12 @@ services:
         condition: service_healthy
     networks:
       - nat 
+    healthcheck:
+      test: ["CMD-SHELL", "psql -h $${AUTHENTIK_POSTGRESQL__HOST} -U $${AUTHENTIK_POSTGRESQL__USER} -d $${AUTHENTIK_POSTGRESQL__NAME} -c 'SELECT 1'"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
 ########################################################            
 networks:
   nat:

@@ -4,7 +4,7 @@ services:
     hostname: mysql
     container_name: mysql_semaphore
     volumes:
-      - semaphore-mysql:/var/lib/mysql
+      - ./semaphore-mysql:/var/lib/mysql
     environment:
       - MYSQL_RANDOM_ROOT_PASSWORD=no
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
@@ -14,12 +14,22 @@ services:
     restart: unless-stopped
     networks:
       - nat
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 ###########################################################    
   semaphore:
     container_name: semaphore
     image: docker.io/semaphoreui/semaphore:v2.12.17
     networks:
       - nat
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     user: "${UID}:${GID}"
 #    ports:
 #      - 3000:3000
@@ -43,16 +53,19 @@ services:
       - ./config/:/etc/semaphore:rw
     restart: unless-stopped
     depends_on:
-      - mysql
-    labels:
+      mysql:
+        condition: service_healthy
+    labels: # (optional only for using traefik) ------>
       - "traefik.enable=true"
       - "traefik.http.routers.semaphore.entrypoints=websecure"
       - "traefik.http.routers.semaphore.rule=Host(`semaphore.example.com`)" # Replace with your desired hostname
       - "traefik.http.routers.semaphore.tls=true"
       - "traefik.http.routers.semaphore.tls.certresolver=cloudflare" # Replace with your cert resolver name
-      - "traefik.http.services.semaphore.loadbalancer.server.port=3000"       
+      - "traefik.http.services.semaphore.loadbalancer.server.port=3000"    
       - "traefik.docker.network=nat" 
-      - "traefik.http.routers.semaphore.service=semaphore"
+      - "traefik.http.routers.semaphore.service=semaphore"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.semaphore.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
 networks:
   nat:
     external: true      

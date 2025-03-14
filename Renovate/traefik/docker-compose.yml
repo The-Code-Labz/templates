@@ -3,8 +3,8 @@ services:
     image: ghcr.io/mend/renovate-ce:9.3.0
     restart: unless-stopped
     container_name: renovate-ce
-  #  ports:
-  #   - 8080:8080
+#    ports:
+#     - 8080:8080
     environment:
       LOG_LEVEL: debug  
        LOG_FORMAT: json 
@@ -27,27 +27,60 @@ services:
       MEND_RNV_LOG_HISTORY_DIR: /logs  # Persist Renovate job logs - organized by org/rep/timestamp. Enable volume mount!
       # MEND_RNV_ENQUEUE_JOBS_ON_STARTUP: disabled  # Options: 'enabled', 'disabled', 'discovered' (default)
       # MEND_RNV_AUTODISCOVER_FILTER: org1/*, org2/test* # Renovate will only run on these repos
-      # Connection details to the Postgres DB (optional)
-    #  MEND_RNV_DATA_HANDLER_TYPE: postgresql
-    #  POSTGRES_DATABASE: postgres
-    #  POSTGRES_USER: ${PGUSER}
-    #  POSTGRES_PASSWORD: ${PGPASSWORD}
-    #  POSTGRES_HOST: 192.169.0.28
-    #  POSTGRES_PORT: 5432
+      # Connection details to the Postgres DB
+      MEND_RNV_DATA_HANDLER_TYPE: postgresql
+      POSTGRES_DATABASE: ${POSTGRES_DB}
+      POSTGRES_USER: ${PGUSER}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
     # Enable volumes if persisting Renovate job logs
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.renovate.entrypoints=websecure"
-      - "traefik.http.routers.renovate.rule=Host(`renovate.example.com`)" # Replace with your desired hostname
-      - "traefik.http.routers.renovate.tls=true"
-      - "traefik.http.routers.renovate.tls.certresolver=cloudflare" # Replace with your cert resolver name
-      - "traefik.http.services.renovate.loadbalancer.server.port=8080"
     volumes:
       # Tip: Create folders in advance to avoid permission issues (ie. when Renovate CLI tries to write logs)
       - ./logs:/logs   # Unix version
       - ./db:/db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.http.routers.renovate-ce.entrypoints=websecure"
+      - "traefik.http.routers.renovate-ce.rule=Host(`renovate-ce.your-server.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.renovate-ce.tls=true"
+      - "traefik.http.routers.renovate-ce.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.renovate-ce.loadbalancer.server.port=8080"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.renovate-ce.service=renovate-ce"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.renovate-ce.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)      
     networks:
-        - nat
+      - nat
+      - nat2
+    depends_on:
+      postgres:
+        condition: service_healthy
+############################################################################################################      
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres_renovate
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    networks:
+      - nat2
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+      interval: 10s
+      timeout: 3s
+      retries: 3
 networks:
-     nat:
-        external: true
+  nat:
+    external: true
+  nat2: 
+    external: true

@@ -1,0 +1,40 @@
+services:
+  teleport:
+    image: public.ecr.aws/gravitational/teleport-distroless-debug:17.2.9
+    container_name: teleport
+    command: ["/bin/sh", "-c", "ln -s /busybox/sh /bin/bash && teleport start"]
+    ports:
+      - "3080:3080"
+      - "3023:3023"
+      - "3024:3024"
+      - "3025:3025"
+    volumes:
+      - ./config:/etc/teleport
+      - ./data:/var/lib/teleport
+     networks:
+       - nat
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3080"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+#    labels: # (optional only for using traefik) ------> 
+#      - "traefik.enable=true"
+#      - "traefik.http.services.teleport.loadbalancer.server.port=3080"
+#      - "traefik.http.services.teleport.loadbalancer.server.scheme=https"
+#      - "traefik.http.routers.teleport-http.entrypoints=web"
+#      - "traefik.http.routers.teleport-http.rule=HostRegexp(`^(?i)(?:[[:alnum:]]+(?:-+[[:alnum:]]+)*\\.)?your-server-url(?::\\d+)?$`)"
+#      - "traefik.http.routers.teleport-https.entrypoints=websecure"
+#      - "traefik.http.routers.teleport-https.rule=HostRegexp(`^(?i)(?:[[:alnum:]]+(?:-+[[:alnum:]]+)*\\.)?your-server-url(?::\\d+)?$`)"
+#      - "traefik.http.routers.teleport-https.tls=true"
+#      - "traefik.http.routers.teleport-https.tls.certresolver=your-certresolver"
+#      - "traefik.http.routers.teleport-https.tls.domains[0].main=your-server-url"
+#      - "traefik.http.routers.teleport-https.tls.domains[0].sans=*.your-server-url" 
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.teleport.service=teleport"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.teleport.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+networks:
+  nat:
+    external: true

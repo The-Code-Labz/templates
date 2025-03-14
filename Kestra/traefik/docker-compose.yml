@@ -1,9 +1,10 @@
+----
 services:
   postgres:
     image: postgres:17.4
     container_name: postgres_kestra
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -19,11 +20,10 @@ services:
 ###########################################################################################
   kestra:
     image: kestra/kestra:v0.21.5
-    pull_policy: always
     user: "root"
     command: server standalone
     volumes:
-      - kestra-data:/app/storage
+      - ./kestra-data:/app/storage
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/kestra-wd:/tmp/kestra-wd
     environment:
@@ -37,7 +37,7 @@ services:
         kestra:
           server:
             basicAuth:
-              enabled: true
+              enabled: true  # if you want to enable basic auth (disable for reverse proxy)
               username: "admin@kestra.io" # it must be a valid email address
               password: ${password}
           repository:
@@ -58,20 +58,29 @@ services:
     depends_on:
       postgres:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 5s
+      retries: 3    
     networks:
       - nat
       - nat2
     restart: always
-    labels:
-      - "traefik.enable=true" # Enable Traefik for this service
-      - "traefik.http.routers.kestra.rule=Host(`your.domain.com`)" # Traefik routing rule
-      - "traefik.http.routers.kestra.entrypoints=websecure" # Entry point for traffic
-      - "traefik.http.routers.kestra.tls=true" # Enable TLS for this service
-      - "traefik.http.routers.kestra.tls.certresolver=myresolver" # TLS certificate resolver
-      - "traefik.http.services.kestra.loadbalancer.server.port=8080" # Load balancer port
-
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.http.routers.kestra.entrypoints=websecure"
+      - "traefik.http.routers.kestra.rule=Host(`kestra.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.kestra.tls=true"
+      - "traefik.http.routers.kestra.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.kestra.loadbalancer.server.port=8080"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.kestra.service=kestra"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.kestra.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+###########################################################################################
 networks:
   nat: 
     external: true   
   nat2: 
-    external: true
+    external: true   

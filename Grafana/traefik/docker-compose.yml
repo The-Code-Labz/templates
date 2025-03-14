@@ -12,6 +12,11 @@ services:
     restart: always
     networks:
       - nat
+    healthcheck:    
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
     labels: # (optional only for using traefik) ------>
       - "traefik.enable=true"
       - "traefik.http.routers.grafana.entrypoints=websecure"

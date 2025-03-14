@@ -44,6 +44,15 @@ services:
            - nat
         # dns:
         #   - 172.20.0.53
+        healthcheck:
+            test: ["CMD", "wget", "--spider", "-S", "http://localhost:8000"]
+            interval: 1m30s
+            timeout: 10s
+            retries: 3
+        restart: unless-stopped
+        depends_on:
+            sonic:
+                condition: service_healthy        
 #########################################################################
     ######## Optional Scheduler ########
     archivebox_scheduler:
@@ -64,6 +73,9 @@ services:
         # restart: always
         networks:
           - nat
+        depends_on:
+            sonic: {condition: service_healthy}
+        restart: unless-stopped          
 ###########################################################################
     sonic:
         image: archivebox/sonic:latest
@@ -89,6 +101,12 @@ services:
 #            - "traefik.http.routers.archivebox-sonic.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)  
         networks:
           - nat
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "wget", "--spider", "-S", "http://localhost:1491"]
+            interval: 1m30s
+            timeout: 10s
+            retries: 3            
 ##################################################################################
     ### This optional container runs xvfb+noVNC so you can watch the ArchiveBox browser as it archives things,
     # or remote control it to set up a chrome profile w/ login credentials for sites you want to archive.
@@ -117,6 +135,12 @@ services:
 #            - "traefik.http.routers.archivebox-novnc.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
         networks:
           - nat
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "wget", "--spider", "-S", "http://localhost:8080"]
+            interval: 1m30s
+            timeout: 10s
+            retries: 3           
 ################################################################################################
     ### Example: To run pihole in order to block ad/tracker requests during archiving,
     # uncomment this optional block and set up pihole using its admin interface

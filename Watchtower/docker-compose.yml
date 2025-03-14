@@ -1,7 +1,10 @@
 services:
   watchtower:
     image: containrrr/watchtower
+    pull: always
     restart: unless-stopped
+    ports:
+      - 8080:8080
     environment:
       - TZ=AMERICA/LOS_ANGELOS
       # remove old images after update (useful for saving space)
@@ -23,7 +26,7 @@ services:
       # you can tell watchtower to do updates and restarts one by one - can be helpful
       - WATCHTOWER_ROLLING_RESTART=true
       - WATCHTOWER_NOTIFICATIONS=gotify
-      - WATCHTOWER_NOTIFICATION_GOTIFY_URL=https://gotify.jimsgarage.co.uk
+      - WATCHTOWER_NOTIFICATION_GOTIFY_URL=${WATCHTOWER_NOTIFICATION_GOTIFY_URL}
       - WATCHTOWER_NOTIFICATION_GOTIFY_TOKEN=${WATCHTOWER_NOTIFICATION_GOTIFY_TOKEN}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

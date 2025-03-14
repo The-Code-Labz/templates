@@ -1,0 +1,216 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    pull_policy: always
+    container_name: ollama_local-ai
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - OLLAMA_KEEP_ALIVE=24h  # how long to keep the model alive inside gpu memory
+      - ENABLE_IMAGE_GENERATION=True
+      - COMFYUI_BASE_URL=http://stable-diffusion-webui:7860
+    networks:
+      - nat
+    ports:
+      - 11434:11434
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "pgrep", "ollama"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.ollama.entrypoints=websecure"
+#      - "traefik.http.routers.ollama.rule=Host(`ollama.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.ollama.tls=true"
+#      - "traefik.http.routers.ollama.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.ollama.loadbalancer.server.port=11434"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.ollama.service=ollama"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.ollama.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)   
+# stable diffusion###########################################################################################################################################
+  stable-diffusion-webui:
+    image: zefie/stable-diffusion-automatic1111:latest
+    pull_policy: always
+    container_name: automatic1111
+    restart: unless-stopped
+    environment:
+      - CLI_ARGS=--allow-code --xformers --enable-insecure-extension-access --api --disable-safe-unpickle --no-half-vae
+    ports:
+      - 7860:7860
+    volumes:
+      - ./auto1111-data:/data
+      - ./auto1111-output:/output
+      - ./auto1111-models:/models
+    stop_signal: SIGKILL
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['0']
+              capabilities: [compute, utility]
+    healthcheck:
+      test: ["CMD", "pgrep", "python"]
+      interval: 30s
+      timeout: 5s
+      retries: 3          
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.stable-diffusion-automatic1111.entrypoints=websecure"
+#      - "traefik.http.routers.stable-diffusion-automatic1111.rule=Host(`auto1111.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.stable-diffusion-automatic1111.tls=true"
+#      - "traefik.http.routers.stable-diffusion-automatic1111.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.stable-diffusion-automatic1111.loadbalancer.server.port=7860"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.stable-diffusion-automatic1111.service=stable-diffusion-automatic1111"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.stable-diffusion-automatic1111.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+    networks:
+      - nat
+# whisper###########################################################################################################################################
+  mongo:
+    image: mongo
+    container_name: mongo_whisper
+    env_file:
+      - .env
+    networks:
+      - nat2
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./whisper/db_data:/data/db
+      - ./whisper/db_data/logs/:/var/log/mongodb/
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USER:-whishper}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASS:-whishper}
+    command: ['--logpath', '/var/log/mongodb/mongod.log']
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+###########################################################################################################################################
+  translate:
+    container_name: whisper-libretranslate
+    image: libretranslate/libretranslate:latest-cuda
+    pull_policy: always
+    env_file:
+      - .env
+    networks:
+      - nat
+    restart: unless-stopped
+    ports:
+      - 5000:5000
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./whisper/libretranslate/data:/home/libretranslate/.local/share
+      - ./whisper/libretranslate/cache:/home/libretranslate/.local/cache
+    user: root
+    tty: true
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - LT_DISABLE_WEB_UI=false
+      - LT_LOAD_ONLY=${LT_LOAD_ONLY:-en,fr,es}
+      - LT_UPDATE_MODELS=True
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "pgrep", "libretranslate"]
+      interval: 30s
+      timeout: 5s
+      retries: 3        
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.whisper-libretranslate.entrypoints=websecure"
+#      - "traefik.http.routers.whisper-libretranslate.rule=Host(`whisper-libretranslate.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.whisper-libretranslate.tls=true"
+#      - "traefik.http.routers.whisper-libretranslate.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.whisper-libretranslate.loadbalancer.server.port=5000"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.whisper-libretranslate.service=whisper-libretranslate"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.whisper-libretranslate.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+###########################################################################################################################################
+  whisper:
+    container_name: whisper
+    pull_policy: always
+    image: pluja/whishper:latest-gpu
+    env_file:
+      - .env
+    networks:
+      - nat
+    ports:
+      - 80:80
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./whisper/uploads:/app/uploads
+      - ./whisper/logs:/var/log/whishper
+      - ./whisper/models:/app/models
+    restart: unless-stopped
+    depends_on:
+      - mongo
+      - translate
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - PUBLIC_INTERNAL_API_HOST=${WHISHPER_HOST}
+      - PUBLIC_TRANSLATION_API_HOST=${WHISHPER_HOST}
+      - PUBLIC_API_HOST=${WHISHPER_HOST:-}
+      - PUBLIC_WHISHPER_PROFILE=gpu
+      - WHISPER_MODELS_DIR=/app/models
+      - UPLOAD_DIR=/app/uploads
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "pgrep", "whisper"]
+      interval: 30s
+      timeout: 5s
+      retries: 3        
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.whisper.entrypoints=websecure"
+#      - "traefik.http.routers.whisper.rule=Host(`whisper.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.whisper.tls=true"
+#      - "traefik.http.routers.whisper.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.whisper.loadbalancer.server.port=80"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.whisper.service=whisper"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.whisper.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)    
+###########################################################################################################################################
+networks:
+  nat:
+    external: true
+  nat2:
+    external: true

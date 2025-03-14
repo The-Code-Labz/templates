@@ -5,15 +5,15 @@ services:
     restart: unless-stopped
     environment:
       # You must change these. Replace `postiz.your-server.com` with your DNS name - this needs to be exactly the URL you're accessing Postiz on.
-      MAIN_URL: "https://postiz.your-server.com"
-      FRONTEND_URL: "https://postiz.your-server.com"
-      NEXT_PUBLIC_nat2_URL: "https://postiz.your-server.com/api"
+      MAIN_URL: "http://localhost:5000"
+      FRONTEND_URL: "http://localhost:5000"
+      NEXT_PUBLIC_BACKEND_URL: "http://localhost:5000"api"
       JWT_SECRET: "${JWT_SECRET}"
       # These defaults are probably fine, but if you change your user/password, update it in the
       # postiz-postgres or postiz-redis services below.
       DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postiz-postgres:5432/${POSTGRES_DB}"
       REDIS_URL: "redis://postiz-redis:6379"
-      nat2_INTERNAL_URL: "http://localhost:3000"
+      BACKEND_INTERNAL_URL: "http://localhost:3000"
       IS_GENERAL: "true" # Required for self-hosting.
       # The container images are pre-configured to use /uploads for file storage.
       # You probably should not change this unless you have a really good reason!
@@ -21,8 +21,24 @@ services:
       UPLOAD_DIRECTORY: "/uploads"
       NEXT_PUBLIC_UPLOAD_DIRECTORY: "/uploads"
     volumes:
-      - /postiz/config:/config/
-      - /postiz/uploads:/uploads/
+      - ./config:/config/
+      - ./uploads:/uploads/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.http.routers.postiz.entrypoints=websecure"
+      - "traefik.http.routers.postiz.rule=Host(`postiz.your-server.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.postiz.tls=true"
+      - "traefik.http.routers.postiz.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.postiz.loadbalancer.server.port=5000"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.postiz.service=postiz"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.postiz.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
 #    ports:
 #      - 5000:5000
     networks:
@@ -33,17 +49,8 @@ services:
         condition: service_healthy
       postiz-redis:
         condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.postiz.entrypoints=websecure"
-      - "traefik.http.routers.postiz.rule=Host(`postiz.example.com`)" # Replace with your desired hostname
-      - "traefik.http.routers.postiz.tls=true"
-      - "traefik.http.routers.postiz.tls.certresolver=cloudflare" # Replace with your cert resolver name
-      - "traefik.http.services.postiz.loadbalancer.server.port=5000"       
-      - "traefik.docker.network=nat" 
-      - "traefik.http.routers.postiz.service=postiz"
 #################################################################################### 
-  postiz:
+  postiz-postgres:
     image: postgres:17-alpine
     container_name: postiz-postgres
     restart: always
@@ -52,7 +59,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - /postgres:/var/lib/postgresql/data
+      - ./postgres:/var/lib/postgresql/data
     networks:
       - nat2
     healthcheck:
@@ -61,7 +68,7 @@ services:
       timeout: 3s
       retries: 3
 ##############################################################################      
-  postiz:
+  postiz-redis:
     image: redis:7.4
     container_name: postiz-redis
     restart: always
@@ -71,7 +78,7 @@ services:
       timeout: 3s
       retries: 3
     volumes:
-      - /redis/data:/data
+      - ./redis/data:/data
     networks:
       - nat2
 ############################################################################################## 

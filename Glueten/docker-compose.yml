@@ -1,6 +1,7 @@
 services:
   gluetun:
-    image: qmcgaw/gluetun
+    image: qmcgaw/gluetun:latest
+    pull_policy: always
     cap_add:
       - NET_ADMIN
     container_name: gluetun

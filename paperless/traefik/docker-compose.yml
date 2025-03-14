@@ -2,6 +2,7 @@ services:
   redis:
     container_name: paperless_redis
     image: 'redis:7.4'
+    restart: always
     volumes:
       - 'paperless-redis:/data'
     networks:
@@ -17,10 +18,11 @@ services:
   paperless:
     image: 'paperlessngx/paperless-ngx:latest'
     networks:
-       - nat
+      - nat
     container_name: paperless
-    # ports:
-    #  - 8000:8000
+    restart: unless-stopped
+#    ports:
+#      - 8000:8000
     depends_on:
       redis:
         condition: service_healthy
@@ -37,22 +39,27 @@ services:
       timeout: 10s
       retries: 5
     volumes:
-      - 'paperless-data:/usr/src/paperless/data'
-      - 'paperless-media:/usr/src/paperless/media'
+      - './paperless-data:/usr/src/paperless/data'
+      - './paperless-media:/usr/src/paperless/media'
       - './export:/usr/src/paperless/export'
       -  './consume:/usr/src/paperless/consume'
     environment:
-      - 'PAPERLESS_URL=${SERVICE_FQDN_PAPERLESS_8000}'
+      - 'PAPERLESS_URL=${SERVICE_FQDN_PAPERLESS}'
       - 'PAPERLESS_ADMIN_PASSWORD=${SERVICE_PASSWORD_PAPERLESS}'
       - 'PAPERLESS_ADMIN_USER=${SERVICE_USER_PAPERLESS}'
       - 'PAPERLESS_REDIS=redis://redis:6379'
-      - 'PAPERLESS_SECRET_KEY=${SERVICE_REALBASE64_64_PAPERLESS}'
-    labels:
+      - 'PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY}'
+    labels:   # (optional only for using traefik) ------>
       - "traefik.enable=true"
-      - "traefik.http.routers.paperless.rule=Host(`${SERVICE_FQDN_PAPERLESS_8000?Replace('http://','').Replace('https://','')}`)" # Strip protocol from FQDN
-      - "traefik.http.routers.paperless.entrypoints=websecure" # Or web if not using TLS
-      - "traefik.http.routers.paperless.tls.certresolver=letsencrypt" # Replace letsencrypt with your certresolver name if different
-      - "traefik.http.services.paperless.loadbalancer.server.port=8000"
+      - "traefik.http.routers.paperless.entrypoints=websecure"
+      - "traefik.http.routers.paperless.rule=Host(`paperless.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.paperless.tls=true"
+      - "traefik.http.routers.paperless.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.paperless.loadbalancer.server.port=8000"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.paperless.service=paperless"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.paperless.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
 networks:
   nat:
-    external: true
+    external: true 

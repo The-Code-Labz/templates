@@ -3,21 +3,28 @@ services:
     image: 'louislam/uptime-kuma:1.23.16'
     container_name: uptime
     volumes:
-      - '/uptime-kuma:/app/data'
+      - './uptime-kuma:/app/data'
     restart: unless-stopped
-#    ports:
-#      - 3001:3001
-    networks:
-      - nat
-    labels:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    labels: # (optional only for using traefik) ------>
       - "traefik.enable=true"
       - "traefik.http.routers.uptime-kuma.entrypoints=websecure"
       - "traefik.http.routers.uptime-kuma.rule=Host(`uptime.example.com`)" # Replace with your desired hostname
       - "traefik.http.routers.uptime-kuma.tls=true"
       - "traefik.http.routers.uptime-kuma.tls.certresolver=cloudflare" # Replace with your cert resolver name
-      - "traefik.http.services.uptime-kuma.loadbalancer.server.port=3001"
+      - "traefik.http.services.uptime-kuma.loadbalancer.server.port=3001"    
       - "traefik.docker.network=nat" 
-      - "traefik.http.routers.uptime-kuma.service=uptime-kuma"     
+      - "traefik.http.routers.uptime-kuma.service=uptime-kuma"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.uptime-kuma.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+    networks:
+      - nat
+#    ports:
+#      - 3001:3001   
 networks:
   nat:
     external: true          

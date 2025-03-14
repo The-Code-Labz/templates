@@ -13,7 +13,12 @@ services:
     networks:
       - nat
     ports:
-      - 8080:80      
+      - 8080:80     
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 1m
+      timeout: 10s
+      retries: 3 
 #    labels: # (optional only for using traefik) ------>
 #      - "traefik.enable=true"
 #      - "traefik.http.routers.filebrowser.entrypoints=websecure"

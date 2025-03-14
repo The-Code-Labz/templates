@@ -13,6 +13,11 @@ services:
       - nat
 #    ports:
 #      - 3000:3000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.homepage.entrypoints=websecure"

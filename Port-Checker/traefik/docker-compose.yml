@@ -1,34 +1,52 @@
----
 services:
   web:
     image: ghcr.io/dsgnr/portcheckerio-web:latest
+    pull: always
     container_name: portchecker
     restart: unless-stopped
     environment:
       - DEFAULT_PORT=443  # Optional
       - API_URL=http://api:8000
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - nat
-    labels:
+#    ports:
+#      - 8080:80 
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    labels: # (optional only for using traefik) ------>
       - "traefik.enable=true"
-      - "traefik.http.routers.portchecker.entrypoints=web,websecure"
-      - "traefik.http.routers.portchecker.rule=Host(`example.com`)"
+      - "traefik.http.routers.portchecker.entrypoints=websecure"
+      - "traefik.http.routers.portchecker.rule=Host(`portchecker.example.com`)" # Replace with your desired hostname
       - "traefik.http.routers.portchecker.tls=true"
-      - "traefik.http.routers.portchecker.tls.certresolver=resolver"
-      - "traefik.http.routers.portchecker.middlewares=https-redirect"
-      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.services.web.loadbalancer.server.port=80"
+      - "traefik.http.routers.portchecker.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.portchecker.loadbalancer.server.port=80"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.portchecker.service=portchecker"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.portchecker.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
 #################################################################
   api:
     image: ghcr.io/dsgnr/portcheckerio-api:latest
+    pull_always: true
     container_name: portchecker_api
     restart: unless-stopped
+#    ports:
+#     - 8000:8000
+    environment:
+     - ALLOW_PRIVATE=true
     networks:
       - nat
-    environment:
-     - ALLOW_PRIVATE=true      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 networks:
   nat:
     external: true

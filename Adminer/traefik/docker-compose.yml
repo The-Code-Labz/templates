@@ -5,6 +5,11 @@ services:
     restart: unless-stopped
     networks: 
       - nat
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-S", "http://localhost:8080"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3      
 #    ports: 
 #      - 8080:8080  # (optional when using a reverse proxy like traefik or nginx-proxy manager)
     labels: # (optional only for using traefik)

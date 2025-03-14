@@ -1,0 +1,43 @@
+services:
+  netbird:
+    image: 'netbirdio/netbird:0.38.0'
+    container_name: netbird
+    restart: unless-stopped
+    hostname: socat-netbird  #(optional) changes your name inside netbird ui 
+    environment:
+#      - 'NB_MANAGEMENT_URL=https://yournetbird.com' #(optional) only if you self host your own netbird server
+      - NB_SETUP_KEY=${NB_SETUP_KEY}
+    volumes:
+      - './netbird-client:/etc/netbird'
+    networks:
+      - nat
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    healthcheck:      #(optinal) if you want to make sure your netbird container is connected
+    test: ["CMD", "pgrep", "netbird"]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+############################################################################################################
+  socat:
+    image: alpine/socat
+    pull: always
+    restart: always
+    container_name: socat-docker
+    depends_on:
+      netbird:
+        condition: service_healthy
+    network_mode: service:netbird
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: TCP-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock
+    restart: always
+    healthcheck:
+      test: ["CMD", "socat", "-h"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+networks:
+  nat:
+    external: true

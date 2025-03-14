@@ -11,6 +11,11 @@ services:
       - ./config:/etc/gitlab
       - ./logs:/var/log/gitlab
       - ./gitlab-data:/var/opt/gitlab
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
     ports:
       - "80:80"
       - "443:443"

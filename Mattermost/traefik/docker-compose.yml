@@ -3,17 +3,17 @@ services:
     image: 'mattermost/mattermost-team-edition:release-9.11'
     platform: linux/amd64
     volumes:
-      - '/mattermost/config:/mattermost/config'
-      - '/mattermost/data:/mattermost/data'
-      - '/mattermost/logs:/mattermost/logs'
-      - '/mattermost/plugins:/mattermost/plugins'
-      - '/mattermost/client-plugins:/mattermost/client/plugins'
-      - '/mattermost/index:/mattermost/bleve-indexes'
+      - './config:/mattermost/config'
+      - './data:/mattermost/data'
+      - './logs:/mattermost/logs'
+      - './plugins:/mattermost/plugins'
+      - './client-plugins:/mattermost/client/plugins'
+      - './index:/mattermost/bleve-indexes'
     environment:
       MM_SERVICESETTINGS_SITEURL: '${SERVICE_FQDN_MATTERMOST}'
-      TZ: AMERICA/LOS_ANGELES
+      TZ: 'AMERICA/LOS_ANGELOS'
       MM_SQLSETTINGS_DRIVERNAME: postgres
-      MM_SQLSETTINGS_DATASOURCE: 'postgres://${MM_SERVICE_USER_POSTGRES}:${MM_SERVICE_PASSWORD_POSTGRES}@postgres-mattermost:5432/${POSTGRES_DB:-mattermost}?sslmode=disable&connect_timeout=10' # Changed hostname to postgres-mattermost
+      MM_SQLSETTINGS_DATASOURCE: 'postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-mattermost:5432/${POSTGRES_DB:-mattermost}?sslmode=disable&connect_timeout=10' # Changed hostname to postgres-mattermost
       MM_BLEVESETTINGS_INDEXDIR: /mattermost/bleve-indexes
     depends_on:
       postgres-mattermost: # Ensure dependency is on postgres-mattermost
@@ -34,23 +34,25 @@ services:
       - nat2
 #    ports:
 #      - 8065:8065
-    labels:
+    labels: # (optional only for using traefik)
       - "traefik.enable=true"
       - "traefik.http.routers.mattermost.entrypoints=websecure"
       - "traefik.http.routers.mattermost.rule=Host(`mattermost.example.com`)" # Replace with your desired hostname
       - "traefik.http.routers.mattermost.tls=true"
       - "traefik.http.routers.mattermost.tls.certresolver=cloudflare" # Replace with your cert resolver name
-      - "traefik.http.services.mattermost.loadbalancer.server.port=8065"       
+      - "traefik.http.services.mattermost.loadbalancer.server.port=8065"    
       - "traefik.docker.network=nat" 
-      - "traefik.http.routers.mattermost.service=mattermost"
+      - "traefik.http.routers.mattermost.service=mattermost"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.mattermost.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
 ###########################################################################################################
   postgres:
     image: 'postgres:17-alpine'
     volumes:
-      - '/mattermost/postgres:/var/lib/postgresql/data' # Corrected volume mount - using dedicated directory
+      - './postgres:/var/lib/postgresql/data' # Corrected volume mount - using dedicated directory
     environment:
-      POSTGRES_USER: ${MM_SERVICE_USER_POSTGRES}
-      POSTGRES_PASSWORD: ${MM_SERVICE_PASSWORD_POSTGRES}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: '${POSTGRES_DB:-mattermost}'
     healthcheck:
       test:
@@ -63,6 +65,7 @@ services:
     restart: always
     networks:
       - nat2
+###########################################################################################################
 networks:
   nat:
     external: true

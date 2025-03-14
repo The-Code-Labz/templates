@@ -18,20 +18,38 @@ services:
       ## Warning: Verbose mode might log sensitive data
       # PICSUR_VERBOSE: "true"
     restart: unless-stopped
+    depends_on:
+      picsur_postgres:
+        condition: service_healthy
 #    ports:
-#      - 8080:8080
-    networks:
-      - nat
-    labels:
+#      - 8080:8080    
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - '-fs'
+        - '-S'
+        - '--max-time'
+        - '2'
+        - 'http://localhost:8080'
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    labels: # (optional only for using traefik) ------>
       - "traefik.enable=true"
       - "traefik.http.routers.picsur.entrypoints=websecure"
       - "traefik.http.routers.picsur.rule=Host(`picsur.example.com`)" # Replace with your desired hostname
       - "traefik.http.routers.picsur.tls=true"
       - "traefik.http.routers.picsur.tls.certresolver=cloudflare" # Replace with your cert resolver name
-      - "traefik.http.services.picsur.loadbalancer.server.port=8080"
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "traefik.http.services.picsur.loadbalancer.server.port=8080"    
       - "traefik.docker.network=nat" 
-      - "traefik.http.routers.picsur.service=picsur"      
+      - "traefik.http.routers.picsur.service=picsur"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.picsur.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+    ports:
+      - 8080:8080
+    networks:
+      - nat    
 ###############################################################################
   picsur_postgres:
     image: postgres:17-alpine
@@ -41,6 +59,11 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_USER: ${DB_USER}
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - /picsur:/var/lib/postgresql/data
     networks:

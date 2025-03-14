@@ -1,0 +1,113 @@
+services:
+  hoarder:
+    image: 'ghcr.io/hoarder-app/hoarder:release'
+    volumes:
+      - './data:/data'
+    environment:
+      NEXTAUTH_SECRET: '${NEXTAUTH_SECRET}'
+      MEILI_MASTER_KEY: '${MELI_MASTER_KEY}'
+      NEXTAUTH_URL: 'http://localhost:3000'
+      MEILI_ADDR: 'http://meilisearch:7700'
+      BROWSER_WEB_URL: 'http://chrome:9222'
+      OPENAI_API_KEY: '${OPENAI_KEY}'
+      OLLAMA_BASE_URL: '${OLLAMA_BASE_URL}'
+      DISABLE_SIGNUPS: false
+      DATA_DIR: /data
+      SERVICE_PASSWORD_HOARDERNEXTAUTH: '${HOARD_AUTH_PASS}'
+      SERVICE_PASSWORD_MEILI: '${MELI_PASSWORD}'
+      SERVICE_OPENAI_API_KEY: '${OPENAI_KEY}'
+      SERVICE_ENABLE_SIGNUPS: 'true'
+    container_name: hoarder
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+    pull_policy: always
+    env_file:
+      - .env
+    ports:
+      - 3000:3000
+    depends_on:
+      meilisearch:
+        condition: service_healthy
+      chrome:
+        condition: service_healthy
+    networks:
+      - nat
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.hoarder.entrypoints=websecure"
+#      - "traefik.http.routers.hoarder.rule=Host(`hoarder.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.hoarder.tls=true"
+#      - "traefik.http.routers.hoarder.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.hoarder.loadbalancer.server.port=3000"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.hoarder.service=hoarder"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.hoarder.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+########################################################################################################
+  chrome:
+    image: 'gcr.io/zenika-hub/alpine-chrome:124'
+    command:
+      - '--no-sandbox'
+      - '--disable-gpu'
+      - '--disable-dev-shm-usage'
+      - '--remote-debugging-address=0.0.0.0'
+      - '--remote-debugging-port=9222'
+      - '--hide-scrollbars'
+    container_name: chrome_hoarder
+    env_file:
+      - .env
+    volumes:
+      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
+    restart: unless-stopped
+    ports:
+     - 9222:9222
+    networks:
+      - nat
+##################################################################################################     
+  meilisearch:
+    image: 'getmeili/meilisearch:v1.13'
+    environment:
+      MEILI_NO_ANALYTICS: '${MEILI_NO_ANALYTICS:-true}'
+      NEXTAUTH_SECRET: '${SECRET}'
+      MEILI_MASTER_KEY: '${MELI_MASTER_KEY}'
+      NEXTAUTH_URL: 'http://localhost:3000'
+      SERVICE_PASSWORD_HOARDERNEXTAUTH: '${HOARD_AUTH_PASS}'
+      SERVICE_PASSWORD_MEILI: '${MELI_PASSWORD}'
+    volumes:
+      - './meli:/meili_data'
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - '-f'
+        - 'http://127.0.0.1:7700/health'
+      interval: 2s
+      timeout: 10s
+      retries: 15
+    container_name: meilisearch_hoarder
+    env_file:
+      - .env
+    restart: unless-stopped
+    ports:
+     - 7700:7700
+    networks:
+      - nat
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.hoarder-search.entrypoints=websecure"
+#      - "traefik.http.routers.hoarder-search.rule=Host(`hoarder-search.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.hoarder-search.tls=true"
+#      - "traefik.http.routers.hoarder-search.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.hoarder-search.loadbalancer.server.port=7700"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.hoarder-search.service=hoarder-search"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.hoarder-search.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+#########################################################################################      
+networks:
+  nat:
+    external: true
