@@ -1,0 +1,1 @@
+docker run --rm -v /yourpath:/gluetun qmcgaw/gluetun format-servers -yourprovider

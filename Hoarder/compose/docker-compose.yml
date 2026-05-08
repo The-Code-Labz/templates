@@ -19,11 +19,6 @@ services:
       SERVICE_ENABLE_SIGNUPS: 'true'
     container_name: hoarder
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 1m
-      timeout: 10s
-      retries: 3
     pull_policy: always
     env_file:
       - .env
@@ -33,7 +28,7 @@ services:
       meilisearch:
         condition: service_healthy
       chrome:
-        condition: service_healthy
+        condition: service_started
     networks:
       - nat
 #    labels: # (optional only for using traefik) ------>
@@ -98,15 +93,15 @@ services:
       - nat
 #    labels: # (optional only for using traefik) ------>
 #      - "traefik.enable=true"
-#      - "traefik.http.routers.hoarder-search.entrypoints=websecure"
-#      - "traefik.http.routers.hoarder-search.rule=Host(`hoarder-search.example.com`)" # Replace with your desired hostname
-#      - "traefik.http.routers.hoarder-search.tls=true"
-#      - "traefik.http.routers.hoarder-search.tls.certresolver=cloudflare" # Replace with your cert resolver name
-#      - "traefik.http.services.hoarder-search.loadbalancer.server.port=7700"    
+#      - "traefik.http.routers.meli.entrypoints=websecure"
+#      - "traefik.http.routers.meli.rule=Host(`meli.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.meli.tls=true"
+#      - "traefik.http.routers.meli.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.meli.loadbalancer.server.port=7700"    
 #      - "traefik.docker.network=nat" 
-#      - "traefik.http.routers.hoarder-search.service=hoarder-search"  
+#      - "traefik.http.routers.meli.service=meli"  
 #      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
-#      - "traefik.http.routers.hoarder-search.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+#      - "traefik.http.routers.meli.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
 #########################################################################################      
 networks:
   nat:

@@ -1,0 +1,32 @@
+services:
+  nginx:
+    image: nginx:1.21.3
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-S", "http://localhost:80"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx.entrypoints=websecure"
+      - "traefik.http.routers.nginx.rule=Host(`nginx.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.nginx.tls=true"
+      - "traefik.http.routers.nginx.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.nginx.loadbalancer.server.port=80"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.nginx.service=nginx"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.nginx.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+    networks:
+      - nat
+networks:
+  nat:
+    external: true

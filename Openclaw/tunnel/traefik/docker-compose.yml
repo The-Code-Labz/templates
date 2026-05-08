@@ -1,0 +1,37 @@
+services:
+  openclaw-tunnel:
+    image: alpine:latest
+    container_name: openclaw-tunnel
+    restart: unless-stopped
+    networks:
+      - nat
+#    ports:
+#      - "18789:18789"
+    command:
+      - sh
+      - -c
+      - >
+        apk add --no-cache openssh-client &&
+        cp /keys/id_rsa /tmp/id_rsa &&
+        chmod 600 /tmp/id_rsa &&
+        ssh -o StrictHostKeyChecking=no
+        -o ExitOnForwardFailure=yes
+        -i /tmp/id_rsa
+        -N
+        -g
+        -L 0.0.0.0:18790:127.0.0.1:18789
+        root@host-ip-address
+    volumes:
+      - ./id_rsa:/keys/id_rsa:ro
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.http.routers.openclaw.entrypoints=websecure"
+      - "traefik.http.routers.openclaw.rule=Host(`openclaw.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.openclaw.tls=true"
+      - "traefik.http.routers.openclaw.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.openclaw.loadbalancer.server.port=18789"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.openclaw.service=openclaw"  
+networks:
+  nat:
+    external: true

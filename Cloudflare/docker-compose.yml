@@ -1,0 +1,13 @@
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    networks:
+      - nat
+    environment:
+      - TUNNEL_TOKEN=CLOUDFLARE_TUNNEL_TOKEN
+    command: tunnel --no-autoupdate run
+networks:
+  nat:
+    external: true

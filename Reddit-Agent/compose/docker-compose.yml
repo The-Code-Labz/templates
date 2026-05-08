@@ -1,0 +1,36 @@
+services:
+  reddit-agent:
+    image: "otakulabz/reddit-agent:latest"
+    container_name: reddit-agent
+    ports:
+      - "8001:8001"              # host:container
+    restart: unless-stopped
+    healthcheck:
+      # uses Python stdlib (available in the image) to ping the docs endpoint
+      test: ["CMD", "python", "-c", "import os,urllib.request; urllib.request.urlopen(f\"http://127.0.0.1:{os.getenv('PORT','8001')}/docs\"); print('ok')"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    environment:
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY:-}
+      API_BEARER_TOKEN: ${API_BEARER_TOKEN:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      REDDIT_CLIENT_ID: ${REDDIT_CLIENT_ID:-}
+      REDDIT_CLIENT_SECRET: ${REDDIT_CLIENT_SECRET:-}
+      BRAVE_API_KEY: ${BRAVE_API_KEY:-}      
+    networks:
+      - nat
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.reddit-agent.entrypoints=websecure"
+#      - "traefik.http.routers.reddit-agent.rule=Host(`reddit-agent.your-server.com`)"
+#      - "traefik.http.routers.reddit-agent.tls=true"
+#      - "traefik.http.routers.reddit-agent.tls.certresolver=cloudflare"
+#      - "traefik.http.services.reddit-agent.loadbalancer.server.port=8001"
+#      - "traefik.docker.network=nat"
+#      - "traefik.http.routers.reddit-agent.service=reddit-agent"
+networks:
+  nat:
+    external: true

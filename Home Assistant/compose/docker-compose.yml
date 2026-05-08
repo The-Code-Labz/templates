@@ -1,0 +1,26 @@
+services:
+  homeassistant:
+    image: lscr.io/linuxserver/homeassistant:latest
+    container_name: homeassistant
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - ./data:/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8123:8123 #optional
+#    devices:
+#      - /path/to/device:/path/to/device #optional
+    restart: unless-stopped
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.homeassistant.entrypoints=websecure"
+#      - "traefik.http.routers.homeassistant.rule=Host(`homeassistant.yourdomain.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.homeassistant.tls=true"
+#      - "traefik.http.routers.homeassistant.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.homeassistant.loadbalancer.server.port=8123"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.homeassistant.service=homeassistant"        

@@ -1,0 +1,127 @@
+services:
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:release
+    pull_policy: always
+    container_name: immich
+#    ports:
+#      - "2283:2283"
+    networks:
+      - nat
+    volumes:
+      - ./uploads:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime
+    depends_on:
+      immich-redis:
+        condition: service_healthy
+      immich-database:
+        condition: service_healthy
+    environment:
+      PORT: 2283
+      SERVER_URL: ${SERVER_URL}
+      FRONT_BASE_URL: ${FRONT_BASE_URL}
+      DB_HOSTNAME: ${DB_HOSTNAME}
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE_NAME: ${DB_DATABASE_NAME}
+      REDIS_HOSTNAME: ${REDIS_HOSTNAME}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DBINDEX: ${REDIS_DBINDEX}
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - '-f'
+        - http://localhost:2283/server-info/ping
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.immich.entrypoints=websecure"
+      - "traefik.http.routers.immich.rule=Host(`immich.archive.neurolearninglabs.com`)"
+      - "traefik.http.routers.immich.tls=true"
+      - "traefik.http.routers.immich.tls.certresolver=cloudflare"
+      - "traefik.http.services.immich.loadbalancer.server.port=2283"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.immich.service=immich"  
+    extends:  # (optional if using hardware transcoding)
+      file: hwaccel.transcoding.yml
+      service: nvenc # Replace with the name of the service you want to extend
+#########################################################################################
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    container_name: immich_machine
+#    ports:
+#      - "3003:3003"
+    networks:
+      - nat
+    volumes:
+      - ./cache:/cache
+    environment:
+      REDIS_HOSTNAME: ${REDIS_HOSTNAME}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DBINDEX: ${REDIS_DBINDEX}
+    restart: unless-stopped
+    extends:  # (optional if using hardware transcoding)
+      file: hwaccel.transcoding.yml
+      service: nvenc # Replace with the name of the service you want to extend
+#########################################################################################
+  immich-redis:
+    image: redis:6.2-alpine
+    container_name: immich_redis
+#    ports:
+#      - "6379:6379"
+    networks:
+      - nat
+    volumes:
+      - ./redis:/data
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+#########################################################################################
+  immich-database:
+    image: tensorchord/pgvecto-rs:pg14-v0.2.0
+    container_name: immich_db
+#    ports:
+#      - "5432:5432"
+    networks:
+      - nat
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE_NAME}
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+    healthcheck:
+      test: pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE_NAME} || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command:
+      - postgres
+      - '-c'
+      - shared_preload_libraries=vectors.so
+      - '-c'
+      - search_path="$$user", public, vectors
+      - '-c'
+      - logging_collector=on
+      - '-c'
+      - max_wal_size=2GB
+      - '-c'
+      - shared_buffers=512MB
+      - '-c'
+      - wal_compression=on
+    restart: unless-stopped
+#########################################################################################
+networks:
+  nat:
+    external: true

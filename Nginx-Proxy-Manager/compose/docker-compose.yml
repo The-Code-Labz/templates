@@ -1,7 +1,7 @@
 services:
   nginx-proxy:
     image: 'jc21/nginx-proxy-manager:2.12.3'
-    container_name: nginx-traefik
+    container_name: nginx
     networks:
       -  nat
     restart: unless-stopped
@@ -18,6 +18,17 @@ services:
       interval: 1m
       timeout: 10s
       retries: 3
+#    labels: #(optional) 
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.nginx-proxy.entrypoints=websecure"
+#      - "traefik.http.routers.nginx-proxy.rule=Host(`nginx-proxy-manager.example.com`)"
+#      - "traefik.http.services.nginx-proxy.loadbalancer.server.port=81"
+#      - "traefik.http.routers.nginx-proxy.tls=true"
+#      - "traefik.http.routers.nginx-proxy.tls.certresolver=myresolver"
+#      - "traefik.http.routers.nginx-proxy.service=nginx-proxy"
+#      - "traefik.docker.network=nat" 
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.nginx-proxy.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)      
 networks:
   nat:
     external: true

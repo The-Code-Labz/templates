@@ -1,0 +1,34 @@
+services:
+  rpcs3:
+    image: lscr.io/linuxserver/rpcs3:latest
+    container_name: rpcs3
+    security_opt:
+      - seccomp:unconfined #optional
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /path/to/config:/config
+    ports:
+      - 3000:3000
+      - 3001:3001
+    shm_size: "1gb"
+    restart: unless-stopped
+    extends:
+      file: ./gpu.yml
+      service: rpcs3
+    networks:
+      - nat
+#    labels: # (optional only for using traefik) ----->
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.rpcs3.entrypoints=websecure"
+#      - "traefik.http.routers.rpcs3.rule=Host(`rpcs3.yourdomain.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.rpcs3.tls=true"
+#      - "traefik.http.routers.rpcs3.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.rpcs3.loadbalancer.server.port=3000"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.rpcs3.service=rpcs3"  
+networks:
+  nat:
+    external: true      

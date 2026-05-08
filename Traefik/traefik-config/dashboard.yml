@@ -1,0 +1,9 @@
+http:
+  routers:
+    traefik-dashboard:
+      rule: "Host(`example.com`)"
+      entryPoints:
+        - websecure
+      service: api@internal
+      tls:
+        certResolver: cloudflare # Replace with your cert resolver name

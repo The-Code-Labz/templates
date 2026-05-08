@@ -1,0 +1,29 @@
+services:
+  srs:
+    image: ossrs/srs:latest
+    container_name: srs
+    restart: unless-stopped
+    ports:
+      - 1935:1935
+#      - 8080:8080 # HTTP admin interface if using file use port 8000
+      - 1985:1985
+#    volumes:
+#      - ./srs/data:/usr/local/srs/objs/nginx/html # only use if you have a preset index.html and favicon.ico
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.srs-rmtp.entrypoints=websecure"
+      - "traefik.http.routers.srs-rmtp.rule=Host(`srs.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.srs-rmtp.tls=true"
+      - "traefik.http.routers.srs-rmtp.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.routers.srs-rmtp.service=srs-rmtp"
+      - "traefik.http.services.srs-rmtp.loadbalancer.server.port=8080"
+      - "traefik.tcp.routers.srs-rmtp.entrypoints=your-enrty-point-name-for-1935"
+      - "traefik.tcp.routers.srs-rmtp.rule=HostSNI(`*`)" # Replace with your desired hostname
+      - "traefik.tcp.routers.srs-rmtp.tls=true"
+      - "traefik.tcp.routers.srs-rmtp.service=srs-rmtp"
+      - "traefik.docker.network=nat"  
+networks:
+  nat:
+    external: true

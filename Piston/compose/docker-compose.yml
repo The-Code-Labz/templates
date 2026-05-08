@@ -1,0 +1,28 @@
+services:
+  piston:
+    image: ghcr.io/engineer-man/piston
+    pull_policy: always
+    container_name: piston
+    ports:
+      - "2000:2000"  # piston listens on port 2000
+    networks:
+      - nat
+    volumes:
+      - ./piston:/piston/packages
+    tmpfs:
+      - /tmp:exec
+    restart: unless-stopped
+    privileged: true
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.piston.entrypoints=websecure"
+#      - "traefik.http.routers.piston.rule=Host(`piston.your-server.com`)"
+#      - "traefik.http.routers.piston.tls=true"
+#      - "traefik.http.routers.piston.tls.certresolver=cloudflare"
+#      - "traefik.http.services.piston.loadbalancer.server.port=2000"
+#      - "traefik.docker.network=nat"
+#      - "traefik.http.routers.piston.service=piston"
+######################################################################################
+networks:
+  nat:
+    external: true

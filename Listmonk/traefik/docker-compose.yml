@@ -1,0 +1,41 @@
+services:
+  listmonk:
+    image: listmonk/listmonk:latest
+    container_name: listmonk
+    restart: unless-stopped
+    networks:
+      - nat
+#    ports:
+#      - "9000:9000"
+    depends_on:
+      - postgres
+    volumes:
+      - ./config.toml:/listmonk/config.toml
+    labels: # (optional only for using traefik)
+      - "traefik.enable=true"
+      - "traefik.http.routers.listmonk.entrypoints=websecure"
+      - "traefik.http.routers.listmonk.rule=Host(`listmonk.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.listmonk.tls=true"
+      - "traefik.http.routers.listmonk.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.listmonk.loadbalancer.server.port=9000"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.listmonk.service=listmonk"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.listmonk.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+###########################################################################################################
+  postgres:
+    image: postgres:13
+    container_name: listmonk_postgres
+    restart: unless-stopped
+    networks:
+      - nat
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+###############################################################
+networks:
+  nat:
+    external: true

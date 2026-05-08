@@ -1,0 +1,26 @@
+services:
+  komga:
+    image: gotson/komga
+    container_name: komga
+    volumes:
+      - ./config:/config
+      - ./data:/data
+      - /etc/timezone:/etc/timezone:ro
+    ports:
+      - 25600:25600
+    user: "1000:1000"
+    restart: unless-stopped
+    networks:
+      - nat
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.komga.entrypoints=websecure"
+#      - "traefik.http.routers.komga.rule=Host(`komga.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.komga.tls=true"
+#      - "traefik.http.routers.komga.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.komga.loadbalancer.server.port=25600"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.komga.service=komga"  
+networks:
+  nat:
+    external: true

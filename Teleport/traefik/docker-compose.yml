@@ -2,7 +2,7 @@ services:
   teleport:
     image: public.ecr.aws/gravitational/teleport-distroless-debug:17.2.9
     container_name: teleport
-    command: ["/bin/sh", "-c", "ln -s /busybox/sh /bin/bash && teleport start"]
+#    command: ["/bin/sh", "-c", "ln -s /busybox/sh /bin/bash && teleport start"]
     ports: # (optional if using traefik)
   #    - "3080:3080" 
       - "3023:3023" 
@@ -11,14 +11,9 @@ services:
     volumes:
       - ./config:/etc/teleport
       - ./data:/var/lib/teleport
-     networks:
+    networks:
        - nat
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3080"]
-      interval: 1m30s
-      timeout: 10s
-      retries: 3
     labels: # (optional only for using traefik) ------> 
       - "traefik.enable=true"
       - "traefik.http.services.teleport.loadbalancer.server.port=3080"

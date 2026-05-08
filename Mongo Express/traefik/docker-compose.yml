@@ -1,0 +1,29 @@
+services:
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+#    ports:
+#      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: ${MONGO_SERVER} # Connects to the 'mongodb' service
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_PASSWORD}
+      ME_CONFIG_MONGODB_AUTH_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      ME_CONFIG_MONGODB_AUTH_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_SERVER}:27017/?authSource=admin
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+    networks:
+      - nat
+    restart: always
+    labels: 
+      - "traefik.enable=true"
+      - "traefik.http.routers.mongo-express.entrypoints=websecure"
+      - "traefik.http.routers.mongo-express.rule=Host(`mongo-express.yourdomain.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.mongo-express.tls=true"
+      - "traefik.http.routers.mongo-express.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.mongo-express.loadbalancer.server.port=8081"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.mongo-express.service=mongo-express"       
+networks:
+  nat:
+    external: true

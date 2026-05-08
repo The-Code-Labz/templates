@@ -1,0 +1,29 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:1.33.2
+    container_name: vaultwarden
+    restart: always
+    environment:
+      DOMAIN: ${DOMAIN}
+      SIGNUPS_ALLOWED: ${SIGNUPS_ALLOWED}
+    volumes:
+      - ./data:/data
+    networks:
+      - nat
+#    ports:
+#      - 8080:80
+    labels: # (optional only for using traefik) ---->
+      - "traefik.enable=true"
+      - "traefik.http.routers.vaultwarden.entrypoints=websecure"
+      - "traefik.http.routers.vaultwarden.rule=Host(`vaultwarden.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.vaultwarden.tls=true"
+      - "traefik.http.routers.vaultwarden.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.vaultwarden.service=vaultwarden"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.vaultwarden.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+########################################################################################################
+networks:
+  nat:
+    external: true

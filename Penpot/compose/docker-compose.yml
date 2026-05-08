@@ -1,0 +1,149 @@
+x-uri: &penpot-public-uri
+  PENPOT_PUBLIC_URI: http://penpot-frontend:8080
+x-flags: &penpot-flags
+  PENPOT_FLAGS: disable-email-verification enable-smtp enable-prepl-server disable-secure-session-cookies
+x-body-size: &penpot-http-body-size
+  PENPOT_HTTP_SERVER_MAX_BODY_SIZE: 31457280
+  PENPOT_HTTP_SERVER_MAX_MULTIPART_BODY_SIZE: 367001600
+################################################################################
+services:
+  penpot-frontend:
+    image: "penpotapp/frontend:${PENPOT_VERSION:-latest}"
+    container_name: penpot-frontend
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    volumes:
+      - ./penpot_assets:/opt/data/assets
+    depends_on:
+      - penpot-backend
+      - penpot-exporter
+    networks:
+      - nat
+    environment:
+      << : [*penpot-flags, *penpot-http-body-size]
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.penpot-frontend.entrypoints=websecure"
+#      - "traefik.http.routers.penpot-frontend.rule=Host(`penpot.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.penpot-frontend.tls=true"
+#      - "traefik.http.routers.penpot-frontend.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.penpot-frontend.loadbalancer.server.port=8080"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.penpot-frontend.service=penpot-frontend"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.penpot-frontend.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+##############################################################################################################
+  penpot-backend:
+    image: "penpotapp/backend:${PENPOT_VERSION:-latest}"
+    container_name: penpot-backend
+    restart: always
+    volumes:
+      - ./penpot_assets:/opt/data/assets
+    depends_on:
+      penpot-redis:
+        condition: service_healthy
+    networks:
+      - nat
+    ## Configuration envronment variables for the backend
+    ## container.
+    environment:
+      << : [*penpot-flags, *penpot-public-uri, *penpot-http-body-size]
+      PENPOT_SECRET_KEY: ${PENPOT_SECRET_KEY}
+      PENPOT_PREPL_HOST: 0.0.0.0
+      PENPOT_DATABASE_URI: postgresql://${PENPOT_DATABASE_USERNAME}:${PENPOT_DATABASE_PASSWORD}@penpot:5432/penpot
+      PENPOT_REDIS_URI: redis://penpot-redis/0
+      PENPOT_ASSETS_STORAGE_BACKEND: assets-fs
+      PENPOT_STORAGE_ASSETS_FS_DIRECTORY: /opt/data/assets
+      ## Also can be configured to to use a S3 compatible storage
+      ## service like MiniIO. Look below for minio service setup.
+      # AWS_ACCESS_KEY_ID: <KEY_ID>
+      # AWS_SECRET_ACCESS_KEY: <ACCESS_KEY>
+      # PENPOT_ASSETS_STORAGE_BACKEND: assets-s3
+      # PENPOT_STORAGE_ASSETS_S3_ENDPOINT: http://penpot-minio:9000
+      # PENPOT_STORAGE_ASSETS_S3_BUCKET: <BUKET_NAME>
+      PENPOT_TELEMETRY_ENABLED: true
+      PENPOT_TELEMETRY_REFERER: compose
+      PENPOT_SMTP_DEFAULT_FROM: ${PENPOT_SMTP_DEFAULT_FROM}
+      PENPOT_SMTP_DEFAULT_REPLY_TO: ${PENPOT_SMTP_DEFAULT_REPLY_TO}
+      PENPOT_SMTP_HOST: ${PENPOT_SMTP_HOST}
+      PENPOT_SMTP_PORT: ${PENPOT_SMTP_PORT}
+      PENPOT_SMTP_USERNAME: ${PENPOT_SMTP_USERNAME}
+      PENPOT_SMTP_PASSWORD: ${PENPOT_SMTP_PASSWORD}
+      PENPOT_SMTP_TLS: false
+      PENPOT_SMTP_SSL: false
+##################################################################################################################
+  penpot-exporter:
+    image: "penpotapp/exporter:${PENPOT_VERSION:-latest}"
+    restart: always
+    container_name: penpot-exporter
+    depends_on:
+      penpot-redis:
+        condition: service_healthy
+    networks:
+      - nat
+    environment:
+      # Don't touch it; this uses an internal docker network to
+      # communicate with the frontend.
+      PENPOT_PUBLIC_URI: http://penpot-frontend:8080
+      ## Redis is used for the websockets notifications.
+      PENPOT_REDIS_URI: redis://penpot-redis/0
+################################################################################################################################   
+  penpot-postgres:
+    image: postgres:15.3-alpine
+    container_name: penpot-postgres
+    restart: always
+    networks:
+      - nat
+    volumes:
+      - ./penpot_postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${PENPOT_DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${PENPOT_DATABASE_PASSWORD}
+      POSTGRES_DB: penpot
+      PGDATA: /var/lib/postgresql/data/pgdata
+#################################################################################
+  penpot-redis:
+    image: redis:7.2
+    container_name: penpot-redis
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+    networks:
+      - nat
+  ## A mailcatch service, used as temporal SMTP server. You can access via HTTP to the
+  ## port 1080 for read all emails the penpot platform has sent. Should be only used as a
+  ## temporal solution while no real SMTP provider is configured.
+#######################################################################################################################
+  penpot-mailcatch:
+    image: sj26/mailcatcher:latest
+    container_name: penpot_mailcatch
+    restart: always
+    expose:
+      - '1025'
+    ports:
+      - "1080:1080"
+    networks:
+      - nat
+###########################################################################################
+  # penpot-minio:
+  #   image: minio/minio:latest
+  #   restart: always
+  #   expose:
+  #     - '9000'
+  #   ports:
+  #     - "9000:9000"
+  #   networks:
+  #     - penpot
+  #   environment:
+  #     MINIO_ROOT_USER: <KEY_ID>
+  #     MINIO_ROOT_PASSWORD: <ACCESS_KEY>
+  #   command: server /data      
+####################################################################################  
+networks:
+  nat:
+    external: true

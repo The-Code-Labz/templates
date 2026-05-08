@@ -1,0 +1,46 @@
+services:
+  openweb-ui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openweb-ui
+#    ports:
+#      - "8080:8080"
+    volumes:
+      - ./data:/app/backend/data
+#    environment:
+      # --------------------------------------------------------------------------
+      # Optional: To enable web Browse via Playwright, uncomment the following
+      # lines AND the 'playwright' service definition below.
+      # - 'WEB_LOADER_ENGINE=playwright'
+      # - 'PLAYWRIGHT_WS_URL=ws://playwright:3000'
+      # --------------------------------------------------------------------------
+      # Optional: To enable image generation, uncomment the following lines AND
+      # the 'stable-diffusion-webui' service definition below.
+      # - 'ENABLE_IMAGE_GENERATION=true'
+      # - 'AUTOMATIC1111_BASE_URL=http://stable-diffusion-webui:7860'
+      # --------------------------------------------------------------------------      
+    restart: unless-stopped
+    networks:
+      - nat
+    labels: #optional for traefik
+      - "traefik.enable=true"
+      - "traefik.http.routers.openweb-ui.entrypoints=websecure"
+      - "traefik.http.routers.openweb-ui.rule=Host(`openweb-ui.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.openweb-ui.tls=true"
+      - "traefik.http.routers.openweb-ui.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.openweb-ui.loadbalancer.server.port=8080"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.openweb-ui.service=openweb-ui" 
+# -----------------------------------------------------------------------------------
+# Optional: Playwright Service for Web Loader
+# To enable the web loader feature in Open WebUI, uncomment this service.
+# playwright:
+#   image: mcr.microsoft.com/playwright:v1.49.1-noble
+#   container_name: playwright-openweb-ui
+#   restart: unless-stopped
+#   command: npx -y playwright@1.49.1 run-server --port 3000 --host 0.0.0.0
+#   networks:
+#     - nat
+# -----------------------------------------------------------------------------------
+networks:
+  nat:
+    external: true      

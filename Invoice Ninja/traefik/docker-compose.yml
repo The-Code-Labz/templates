@@ -1,0 +1,68 @@
+services: 
+  invoiceninja_db:
+    container_name: invoiceninja_db
+    image: mariadb:latest
+    restart: always
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - TZ=${TZ}
+    volumes:
+      - ./invoiceninja_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s                             # Check every 30 seconds
+      timeout: 10s                              # Timeout for health check
+      retries: 5                                # Retry 5 times before considering unhealthy
+      start_period: 30s                         # Start period before health checks start
+    networks:
+      - nat
+    env_file:
+      - .env
+#####################################################################################################################################################
+  invoiceninja:
+    container_name: invoiceninja
+    image: invoiceninja/invoiceninja:latest
+    pull_policy: always
+#    ports:
+#      - 7777:9000
+    restart: always
+    volumes:
+      - ./invoiceninja/public:/var/app/public:rw,delegated
+      - ./invoiceninja/storage:/var/app/storage:rw,delegated
+    environment:
+      - DB_TYPE=mysql
+      - DB_STRICT=false
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${MYSQL_DATABASE}
+      - DB_USERNAME=${MYSQL_USER}
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+      - TZ=${TZ}
+      - APP_KEY=${APP_KEY}
+      - APP_URL=${APP_URL}
+      - APP_ENV=${APP_ENV}
+      - APP_DEBUG=${APP_DEBUG}
+      - APP_CIPHER=${APP_CIPHER}
+    labels:   #(optional)
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.invoiceninja.rule=Host(`ninja.example.com`)' # change this to your domain
+      - 'traefik.http.services.invoiceninja.loadbalancer.server.port=9000'
+      - 'traefik.http.routers.invoiceninja.entrypoints=websecure'
+      - 'traefik.http.routers.invoiceninja.tls=true'
+      - 'traefik.http.routers.invoiceninja.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.invoiceninja.service=invoiceninja'
+    networks:
+      - nat
+    env_file:
+      - .env
+    depends_on:
+      invoiceninja_db:
+        condition: service_healthy
+networks:
+  nat:
+    external: true

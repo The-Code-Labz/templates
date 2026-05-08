@@ -1,0 +1,17 @@
+tcp:
+  routers:
+    smtp: # Replace with a unique name
+      rule: "HostSNI(`*`)" # Replace with your domain
+      service: smtp # Replace with the name of your service
+      entryPoints:
+        - smtp
+#      middlewares:
+#        - traefik-real-ip
+#      tls:
+#        passthrough: true
+#        certResolver: cloudflare # Use the Let's Encrypt resolver defined in traefik.yml file or replace with your own'
+  services:
+    smtp: # Replace with the name of your service
+      loadBalancer:
+        servers:
+          - address: "http://postfix:25" # The backend service to route traffic to

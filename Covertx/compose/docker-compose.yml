@@ -1,0 +1,30 @@
+# docker-compose.yml
+services:
+  convertx: 
+    image: ghcr.io/c4illin/convertx
+    pull_policy: always
+    networks:
+      - nat
+    container_name: convertx
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-$(uuidgen)} # will use randomUUID() if unset
+#      - ACCOUNT_REGISTRATION=true # Enable account registration optional
+#      - HTTP_ALLOWED=true # if you can't login to the admin panel
+    volumes:
+      - ./data:/app/data
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.convertx.entrypoints=websecure"
+#      - "traefik.http.routers.convertx.rule=Host(`convertx.your-server.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.convertx.tls=true"
+#      - "traefik.http.routers.convertx.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.convertx.loadbalancer.server.port=3000"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.convertx.service=convertx"   # Replace with your service name
+######################################################################################
+networks:
+  nat:
+    external: true

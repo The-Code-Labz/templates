@@ -1,0 +1,27 @@
+services:
+  crawl4ai:
+    image: unclecode/crawl4ai:latest
+    container_name: crawl4ai
+#    ports:
+#      - "11235:11235"
+    shm_size: "3g"
+    environment:
+      - CRAWL4AI_API_TOKEN=${CRAWL4AI_API_TOKEN}
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.crawl4ai.entrypoints=websecure"
+      - "traefik.http.routers.crawl4ai.rule=Host(`crawl4ai.yourdomain.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.crawl4ai.tls=true"
+      - "traefik.http.routers.crawl4ai.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.crawl4ai.loadbalancer.server.port=11235"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.crawl4ai.service=crawl4ai"  # Replace with your service name
+    networks:
+      - nat
+    volumes:
+      - /dev/shm:/dev/shm  # Chromium performance  
+networks:
+  nat:
+    external: true          
+      

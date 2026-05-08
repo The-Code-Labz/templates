@@ -1,0 +1,24 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: falkordb
+    volumes:
+      - ./falkordb-data:/data    
+    networks:
+      - nat
+    ports:
+      - "6379:6379"   # FalkorDB
+      - "3000:3000"   # Web UI
+    restart: unless-stopped
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.falkordb.entrypoints=websecure"
+#      - "traefik.http.routers.falkordb.rule=Host(`falkordb.yourdomain.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.falkordb.tls=true"
+#      - "traefik.http.routers.falkordb.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.falkordb.loadbalancer.server.port=3000"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.falkordb.service=falkordb"  # Replace with your service name
+networks:
+  nat:
+    external: true      

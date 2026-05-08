@@ -1,0 +1,25 @@
+services:
+  fabric:
+    image: kayvan/fabric
+    container_name: fabric
+    restart: unless-stopped
+#    ports:
+#      - 8080:8080
+    networks:
+      - nat
+    volumes:
+      - ./fabric-config:/root/.config/fabric
+    command: ["--serve"]
+#    command: ["--serveOllama"] #optional if you want to run a ollama server endpoint
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fabric.entrypoints=websecure"
+      - "traefik.http.routers.fabric.rule=Host(`fabric.yourdomain.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.fabric.tls=true"
+      - "traefik.http.routers.fabric.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.fabric.loadbalancer.server.port=8080"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.fabric.service=fabric"  # Replace with your service name
+networks:
+  nat:
+    external: true      

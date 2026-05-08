@@ -1,0 +1,27 @@
+services:
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /path/to/prowlarr/data:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+    networks:
+      - nat
+#    labels: # (optional only for using traefik) ----->
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.prowlarr.entrypoints=websecure"
+#      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.yourdomain.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.prowlarr.tls=true"
+#      - "traefik.http.routers.prowlarr.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.prowlarr.service=prowlarr"  
+networks:
+  nat:
+    external: true

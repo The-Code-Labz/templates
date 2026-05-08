@@ -1,0 +1,32 @@
+services:
+  browserless:
+    image: ghcr.io/browserless/chromium:v2.23.0
+    container_name: browserless
+    restart: unless-stopped
+    environment:
+      TOKEN: ${BROWSERLESS_TOKEN}
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - '-f'
+        - 'http://127.0.0.1:3000/docs'
+      interval: 2s
+      timeout: 10s
+      retries: 15
+    networks:
+      - nat
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.browserless.entrypoints=websecure"
+#      - "traefik.http.routers.browserless.rule=Host(`browserless.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.browserless.tls=true"
+#      - "traefik.http.routers.browserless.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.browserless.loadbalancer.server.port=3000"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.browserless.service=browserless"      
+networks:
+  nat:
+    external: true

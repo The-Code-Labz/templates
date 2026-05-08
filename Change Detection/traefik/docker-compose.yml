@@ -3,21 +3,19 @@ services:
     image: dgtlmoon/changedetection.io:0.49.3
     container_name: changedetection
     hostname: changedetection
+#    dns:   # (optional for adblocker)
+#    - 127.0.0.1
+#    - 8.8.8.8
     environment:
-#      - BASE_URL=https://change-detection.example.com # configure this for your own domain
-      - PLAYWRIGHT_DRIVER_URL=ws://playwright-chrome:3000
+    - BASE_URL=https://change-detection.example.com # configure this for your own domain
+    - PLAYWRIGHT_DRIVER_URL=ws://playwright-chrome:3000
     volumes:
-      - ./data/datastore:/datastore
+    - ./data/datastore:/datastore
 #    ports:
 #      - 5000:5000
     networks:
       - nat
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000"]
-      interval: 1m
-      timeout: 10s
-      retries: 3
     depends_on:
       playwright-chrome:
         condition: service_healthy
@@ -35,6 +33,7 @@ services:
 ###################################################################################
   playwright-chrome:
     hostname: changedetection-chrome
+    container_name: changedetection-chrome  # Replace with your desired container name
     image: browserless/chrome:latest
     restart: unless-stopped
     ports:
@@ -54,7 +53,6 @@ services:
       - DEFAULT_IGNORE_HTTPS_ERRORS=true    
     networks:
       - nat
-    restart: unless-stopped  
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 1m

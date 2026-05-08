@@ -1,3 +1,9 @@
+# or use whatever port you want to expose 
+# just replace 2375 with your desired port and remove the unix-connect part if you want to forward to a different socket
+# example: TCP-LISTEN:your-port-you-expose ,fork TCP:127.0.0.1:your-port-you-want-to-forward-to-expose
+# so listen is the port that socat exposes and connect is the port that socat forwards to
+# also make sure to change network mode to host to forward ports
+# you canalso use the exta hosts to listen  "host.docker.internal:host-gateway"
 services:
   socat:
     image: alpine/socat
@@ -8,8 +14,7 @@ services:
       - "5000:2375"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: TCP-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock
-    restart: always
+    command: TCP-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock  # or use whatever port you want to expose just replace 2375 with your desired port anr remove the unix-connect part if you want to forward to a different socket
     healthcheck:
       test: ["CMD", "socat", "-h"]
       interval: 60s

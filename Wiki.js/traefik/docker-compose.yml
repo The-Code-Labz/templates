@@ -1,0 +1,52 @@
+services:
+  wiki:
+    image: ghcr.io/requarks/wiki:2.5
+    container_name: wiki
+    restart: unless-stopped
+    environment:
+      - DB_TYPE
+      - DB_HOST
+      - DB_PORT
+      - DB_USER
+      - DB_PASS
+      - DB_NAME
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - nat
+#    ports:
+#      - 3000:3000
+    labels: # (optional only for using traefik) ---->
+      - "traefik.enable=true"
+      - "traefik.http.routers.wiki.entrypoints=websecure"
+      - "traefik.http.routers.wiki.rule=Host(`wiki.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.wiki.tls=true"
+      - "traefik.http.routers.wiki.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.wiki.loadbalancer.server.port=3000"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.wiki.service=wiki"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.wiki.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+########################################################################################################
+  db:
+    image: postgres:14
+    restart: unless-stopped
+    container_name: wiki-db
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    volumes:
+      - ./wiki-db-data:/var/lib/postgresql/data
+    networks:
+      - nat
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+################################################################      
+networks:
+  nat:
+    external: true

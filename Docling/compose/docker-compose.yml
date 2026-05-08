@@ -1,0 +1,32 @@
+services:
+ docling:
+  image: ghcr.io/docling-project/docling-serve-cpu:main  # or ghcr.io/docling-project/docling-serve-cu126:main for nvidia gpu
+  container_name: docling
+  restart: unless-stopped
+  ports:
+    - 5001:5001
+  environment:
+    - DOCLING_SERVE_ENABLE_UI=1
+#    - NVIDIA_VISIBLE_DEVICES="all" # optional if using nvidia gpu
+#  deploy:  # This section is for compatibility with Swarm
+#    resources:
+#      reservations:
+#        devices:
+#          - driver: nvidia
+#            count: all
+#            capabilities: [gpu]    
+  networks:
+    - nat
+#  labels:
+#    - "traefik.enable=true"
+#    - "traefik.http.routers.docling.entrypoints=websecure"
+#    - "traefik.http.routers.docling.rule=Host(`docling.example.com`)" # Replace with your desired hostname
+#    - "traefik.http.routers.docling.tls=true"
+#    - "traefik.http.routers.docling.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#    - "traefik.http.services.docling.loadbalancer.server.port=5001"    
+#    - "traefik.docker.network=nat" 
+#    - "traefik.http.services.docling.loadbalancer.server.scheme=https" # (optional, to set the scheme for your router if you want http or https)
+#    - "traefik.http.routers.docling.service=docling"
+networks:
+  nat:
+    external: true    

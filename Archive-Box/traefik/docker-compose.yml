@@ -214,12 +214,11 @@ services:
     #         - ./data:/archivebox
     #         - ./data/wayback:/webarchive
 ################################# <----------------
-networks:
+networks: # (optional) for using a custom network
     # network just used for pihole container to offer :53 dns resolving on fixed ip for archivebox container
-#    nat:
-#      ipam:
+    nat:
+      external: true    # use an existing network named 'custom-name' or create one with `docker network create custom-name`
+#      ipam:  # Uncomment this section if you want to use a custom IP range for the nat network
 #        driver: default
 #        config:
-#            - subnet: 172.20.0.0/24
-  nat:
-    external: true
+#           - subnet: 172.20.0.0/24

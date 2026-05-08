@@ -1,0 +1,29 @@
+services:
+  carbone:
+    image: carbone/carbone-ee
+    container_name: carbone
+#    ports:
+#      - "4000:4000"
+    stdin_open: true   # equivalent to -i
+    tty: true          # equivalent to -t
+    restart: unless-stopped
+    environment:
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL}
+      AWS_REGION: ${AWS_REGION}
+      BUCKET_TEMPLATES: ${BUCKET_TEMPLATES}
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.carbone.entrypoints=websecure"
+      - "traefik.http.routers.carbone.rule=Host(`carbone.yourdomain.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.carbone.tls=true"
+      - "traefik.http.routers.carbone.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.carbone.loadbalancer.server.port=4000"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.carbone.service=carbone"  # Replace with your service name
+networks:
+  nat:
+    external: true      

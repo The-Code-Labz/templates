@@ -1,0 +1,15 @@
+services:
+ proxysql:
+    image: proxysql/proxysql
+    container_name: proxysql
+    restart: unless-stopped
+    ports:
+      - "6033:6033" # default MySQL client port
+      - "6032:6032" # admin interface
+    volumes:
+      - ./proxysql.cnf:/etc/proxysql.cnf
+    networks:
+      - nat
+networks:
+  nat:
+    external: true

@@ -1,0 +1,19 @@
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME} # Change for production
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD} # Change for production
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE} # Change for production
+    restart: unless-stopped
+    networks:
+      - nat
+
+networks:
+  nat:
+    external: true

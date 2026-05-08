@@ -7,5 +7,8 @@
       - "traefik.http.services.your-router.loadbalancer.server.port=your-port"    
       - "traefik.docker.network=nat" 
       - "traefik.http.routers.your-router.service=your-router"  
+      - "traefik.http.services.your-router.loadbalancer.server.scheme=https"  # (optional, if your service uses https internally) 
+      - "traefik.http.middlewares.your-router-headers.headers.customrequestheaders.X-Forwarded-Proto=https" # (optional, to set headers for your router)
+      - "traefik.http.routers.your-router.middlewares=your-router-headers" # (optional, to use custom headers)
       - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
       - "traefik.http.routers.your-router.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)

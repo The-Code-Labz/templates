@@ -13,11 +13,6 @@ services:
     networks:
       - nat
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000"]
-      interval: 1m
-      timeout: 10s
-      retries: 3
     depends_on:
       playwright-chrome:
         condition: service_healthy
@@ -35,6 +30,7 @@ services:
 ###################################################################################
   playwright-chrome:
     hostname: changedetection-chrome
+    container_name: changedetection-chrome  
     image: browserless/chrome:latest
     restart: unless-stopped
     ports:
@@ -54,7 +50,6 @@ services:
       - DEFAULT_IGNORE_HTTPS_ERRORS=true    
     networks:
       - nat
-    restart: unless-stopped  
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 1m

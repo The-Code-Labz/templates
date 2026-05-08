@@ -1,0 +1,35 @@
+---
+services:
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - VERSION=docker
+#      - PLEX_CLAIM= #optional
+    volumes:
+      - /path/to/plex/library:/config
+      - /path/to/tvseries:/tv
+      - /path/to/movies:/movies
+    restart: unless-stopped
+    extends:
+      file: ./gpu.yml
+      service: plex
+#    ports:
+#      - "32400:32400"
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.plex.entrypoints=websecure"
+      - "traefik.http.routers.plex.rule=Host(`plex.yourdomain.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.plex.tls=true"
+      - "traefik.http.routers.plex.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.plex.loadbalancer.server.port=32400"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.plex.service=plex"  
+networks:
+  nat:
+    external: true      

@@ -1,0 +1,22 @@
+  pgbouncer:
+    image: edoburu/pgbouncer
+   # user: root
+    container_name: pgbouncer
+    restart: unless-stopped
+    environment:
+      PGBOUNCER_IGNORE_STARTUP_CONFIG: "true"
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+    ports:
+      - "6432:6432"
+    networks:
+      - nat
+    volumes:
+      - ./pgbouncer:/etc/pgbouncer
+      - ./userlist.txt:/etc/pgbouncer/userlist.txt
+      - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini   
+networks:
+  nat:
+    external: true

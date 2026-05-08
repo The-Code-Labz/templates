@@ -1,0 +1,35 @@
+services:
+  stirling-pdf:
+    image: frooodle/s-pdf:latest
+    container_name: stirling-pdf
+    restart: always
+    pull_policy: always
+    command: >
+      sh -c "apt update && apt install -y openjdk-17-jre && ./start.sh"      
+#    ports:
+#      - 8080:8080
+    volumes:
+      - ./stirling_pdf_trainingdata:/usr/share/tessdata
+      - ./stirling_pdf_extraconfigs:/configs
+      - ./stirling_pdf_customfiles:/customFiles/
+      - ./stirling_pdf_logs:/logs/
+      - ./stirling_pdf_pipeline:/pipeline/
+    environment:
+      - DOCKER_ENABLE_SECURITY=false
+      - INSTALL_BOOK_AND_ADVANCED_HTML_OPS=false
+      - LANGS=en_GB
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stirling-pdf.entrypoints=websecure"
+      - "traefik.http.routers.stirling-pdf.rule=Host(`stirling.your-server.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.stirling-pdf.tls=true"
+      - "traefik.http.routers.stirling-pdf.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.stirling-pdf.loadbalancer.server.port=8080"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.stirling-pdf.service=stirling-pdf"   # Replace with your service name
+######################################################################################
+networks:
+  nat:
+    external: true

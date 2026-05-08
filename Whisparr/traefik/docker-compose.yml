@@ -1,0 +1,29 @@
+services:
+  whisparr:
+    container_name: whisparr
+    image: ghcr.io/hotio/whisparr:latest # Or specify a version like :v3
+#    ports:
+#      - "6969:6969" # Host Port : Container Port
+    environment:
+      - PUID=1000 # User ID for the container (adjust as needed)
+      - PGID=1000 # Group ID for the container (adjust as needed)
+      - UMASK=002
+      - TZ=Etc/UTC # Timezone (adjust as needed)
+    volumes:
+      - /path/to/your/whisparr/config:/config # Host path for configuration
+      - /path/to/your/media/library:/data # Host path for media files
+    restart: unless-stopped
+    networks:
+      - nat
+    labels: # (optional only for using traefik) ----->
+      - "traefik.enable=true"
+      - "traefik.http.routers.whisparr.entrypoints=websecure"
+      - "traefik.http.routers.whisparr.rule=Host(`whisparr.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.whisparr.tls=true"
+      - "traefik.http.routers.whisparr.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.whisparr.loadbalancer.server.port=6969"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.whisparr.service=whisparr"      
+networks:
+  nat:
+    external: true

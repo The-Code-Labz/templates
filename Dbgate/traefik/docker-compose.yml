@@ -1,0 +1,24 @@
+services:
+  dbgate:
+    image: dbgate/dbgate
+    container_name: dbgate
+    restart: unless-stopped
+#    ports:
+#      - "3000:3000"
+    networks:
+      - nat
+    volumes:
+      - ./dbgate-data:/root/.dbgate
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.http.routers.dbgate.entrypoints=websecure"
+      - "traefik.http.routers.dbgate.rule=Host(`dbgate.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.dbgate.tls=true"
+      - "traefik.http.routers.dbgate.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.dbgate.loadbalancer.server.port=3000"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.dbgate.service=dbgate"       
+networks:
+  nat:
+    external: true
+

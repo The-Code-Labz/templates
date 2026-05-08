@@ -1,0 +1,16 @@
+services:
+  nginx-rtmp:
+    image: tiangolo/nginx-rtmp
+    container_name: nginx-rtmp
+    ports:
+      - "1935:1935"
+    restart: unless-stopped
+    networks:
+      - nat
+    volumes:
+      - ./nginx-rtmp.conf:/etc/nginx/nginx.conf
+      - ./nginx-rtmp.d:/etc/nginx/conf.d
+      - ./nginx-rtmp-html:/usr/share/nginx/html
+networks:
+  nat:
+    external: true

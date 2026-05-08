@@ -23,6 +23,6 @@ services:
       - "traefik.http.routers.adminer.service=adminer"  
 #      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
 #      - "traefik.http.routers.adminer.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
-network:  
+networks:  
   nat:
-  external: true            
+    external: true            

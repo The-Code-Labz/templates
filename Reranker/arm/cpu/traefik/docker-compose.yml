@@ -1,0 +1,38 @@
+services:
+  reranker:
+    build:
+      context: ./app
+      dockerfile: Dockerfile.arm
+    container_name: reranker
+#    ports:
+#      - "8000:8000"
+    environment:
+      OMP_NUM_THREADS: "${OMP_NUM_THREADS:-1}"
+      INTRA_OP_THREADS: "${INTRA_OP_THREADS:-1}"
+      INTER_OP_THREADS: "${INTER_OP_THREADS:-1}"
+      BATCH_SIZE: "${BATCH_SIZE:-16}"
+      WORKERS: "${WORKERS:-4}"
+      MODEL_ID: "${MODEL_ID:-BAAI/bge-reranker-v2-m3}"
+      HF_TOKEN: "${HF_TOKEN:-}"
+      HF_HUB_DISABLE_SYMLINKS_WARNING: "1"
+      RERANK_API_KEY: "${RERANK_API_KEY}"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - nat
+    labels: # (optional only for using traefik) ----->
+      - "traefik.enable=true"
+      - "traefik.http.routers.reranker.entrypoints=websecure"
+      - "traefik.http.routers.reranker.rule=Host(`reranker.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.reranker.tls=true"
+      - "traefik.http.routers.reranker.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.reranker.loadbalancer.server.port=8000"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.reranker.service=reranker"  
+networks:
+  nat:
+    external: true      

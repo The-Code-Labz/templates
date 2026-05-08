@@ -1,0 +1,38 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+#    ports:
+#      - "11434:11434"
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - OLLAMA_KEEP_ALIVE=1h
+#      - ENABLE_IMAGE_GENERATION=True # Un-comment if using ComfyUI
+#      - COMFYUI_BASE_URL=http://stable-diffusion-webui:7860  # Un-comment if using ComfyUI
+    networks:
+      - nat
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./ollama:/root/.ollama
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.http.routers.ollama.entrypoints=websecure"
+      - "traefik.http.routers.ollama.rule=Host(`ollama.yourdomain.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.ollama.tls=true"
+      - "traefik.http.routers.ollama.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.ollama.loadbalancer.server.port=11434"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.ollama.service=ollama"  
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+networks:
+  nat:
+    external: true

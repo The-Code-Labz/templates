@@ -7,7 +7,7 @@ services:
      - 8080:8080
     environment:
       LOG_LEVEL: debug  
-       LOG_FORMAT: json 
+      LOG_FORMAT: json 
       MEND_RNV_LICENSE_KEY: ${MEND_RNV_LICENSE_KEY} # Get Community Edition license key from https://www.mend.io/renovate-community/
       MEND_RNV_ACCEPT_TOS: Y # Set to 'Y' to accept Terms of Service
       # Provide connection details for the GitHub App
@@ -28,22 +28,12 @@ services:
       # MEND_RNV_ENQUEUE_JOBS_ON_STARTUP: disabled  # Options: 'enabled', 'disabled', 'discovered' (default)
       # MEND_RNV_AUTODISCOVER_FILTER: org1/*, org2/test* # Renovate will only run on these repos
       # Connection details to the Postgres DB
-      MEND_RNV_DATA_HANDLER_TYPE: postgresql
-      POSTGRES_DATABASE: ${POSTGRES_DB}
-      POSTGRES_USER: ${PGUSER}
-      POSTGRES_PASSWORD: ${PGPASSWORD}
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
+      MEND_RNV_SQLITE_FILE_PATH: /db/renovate-db.sqlite # Persist database to file. Enable volume mount for /db.
     # Enable volumes if persisting Renovate job logs
     volumes:
       # Tip: Create folders in advance to avoid permission issues (ie. when Renovate CLI tries to write logs)
       - ./logs:/logs   # Unix version
       - ./db:/db
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
 #    labels: # (optional only for using traefik) ------>
 #      - "traefik.enable=true"
 #      - "traefik.http.routers.renovate-ce.entrypoints=websecure"
@@ -57,30 +47,7 @@ services:
 #      - "traefik.http.routers.renovate-ce.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)      
     networks:
       - nat
-      - nat2
-    depends_on:
-      postgres:
-        condition: service_healthy
 ############################################################################################################      
-  postgres:
-    image: postgres:17-alpine
-    container_name: postgres_renovate
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - ./postgres:/var/lib/postgresql/data
-    networks:
-      - nat2
-    healthcheck:
-      test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
-      interval: 10s
-      timeout: 3s
-      retries: 3
 networks:
   nat:
-    external: true
-  nat2: 
     external: true

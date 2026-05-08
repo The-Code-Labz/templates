@@ -1,19 +1,20 @@
 services:
   postiz:
     image: ghcr.io/gitroomhq/postiz-app:latest
+    pull_policy: always
     container_name: postiz
     restart: unless-stopped
     environment:
       # You must change these. Replace `postiz.your-server.com` with your DNS name - this needs to be exactly the URL you're accessing Postiz on.
-      MAIN_URL: "http://localhost:5000"
-      FRONTEND_URL: "http://localhost:5000"
-      NEXT_PUBLIC_BACKEND_URL: "http://localhost:5000"api"
+      MAIN_URL: "${MAIN_URL}"
+      FRONTEND_URL: "${FRONTEND_URL}"
+      NEXT_PUBLIC_BACKEND_URL: "${NEXT_PUBLIC_BACKEND_URL}"
       JWT_SECRET: "${JWT_SECRET}"
       # These defaults are probably fine, but if you change your user/password, update it in the
       # postiz-postgres or postiz-redis services below.
-      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postiz-postgres:5432/${POSTGRES_DB}"
-      REDIS_URL: "redis://postiz-redis:6379"
-      BACKEND_INTERNAL_URL: "http://localhost:3000"
+      DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+      REDIS_URL: "redis://${REDIS_USER}:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}"
+      BACKEND_INTERNAL_URL: "http://postiz:3000"
       IS_GENERAL: "true" # Required for self-hosting.
       # The container images are pre-configured to use /uploads for file storage.
       # You probably should not change this unless you have a really good reason!
@@ -21,13 +22,8 @@ services:
       UPLOAD_DIRECTORY: "/uploads"
       NEXT_PUBLIC_UPLOAD_DIRECTORY: "/uploads"
     volumes:
-      - ./config:/config/
-      - ./uploads:/uploads/
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
+      - ./config:/config
+      - ./uploads:/uploads
     labels: # (optional only for using traefik) ------>
       - "traefik.enable=true"
       - "traefik.http.routers.postiz.entrypoints=websecure"
@@ -43,7 +39,6 @@ services:
 #      - 5000:5000
     networks:
       - nat
-      - nat2
     depends_on:
       postiz-postgres:
         condition: service_healthy
@@ -61,7 +56,7 @@ services:
     volumes:
       - ./postgres:/var/lib/postgresql/data
     networks:
-      - nat2
+      - nat
     healthcheck:
       test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
       interval: 10s
@@ -72,6 +67,9 @@ services:
     image: redis:7.4
     container_name: postiz-redis
     restart: always
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_USER: ${REDIS_USER}
     healthcheck:
       test: redis-cli ping
       interval: 10s
@@ -80,10 +78,8 @@ services:
     volumes:
       - ./redis/data:/data
     networks:
-      - nat2
+      - nat
 ############################################################################################## 
 networks:
   nat:
-    external: false
-  nat2:
     external: false    

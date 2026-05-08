@@ -1,0 +1,44 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    restart: unless-stopped
+    pull_policy: always
+    ports:
+      - "8096:8096"
+#      - "8920:8920" # Optional, for HTTPS
+#      - "7359:7359/udp" # Optional, for DLNA
+#      - "1900:1900/udp" # Optional, for DLNA
+    volumes:
+      - ./config:/config
+      - ./cache:/cache
+      - /path/to/media:/media # Replace /path/to/media with your media directory
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8096"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+#    labels: # (optional only for using traefik)
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.jellyfin.entrypoints=websecure"
+#      - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.jellyfin.tls=true"
+#      - "traefik.http.routers.jellyfin.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+#      - "traefik.docker.network=nat"
+#      - "traefik.http.routers.jellyfin.service=jellyfin"
+#      - "com.centurylinklabs.watchtower.enable=true" # (optional if using watchtower for updates)
+#      - "traefik.http.routers.jellyfin.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+    networks:
+      - nat
+    environment:
+      - TZ=Your/Timezone # Replace Your/Timezone with your timezone (e.g., America/New_York)
+      - PUID=1000
+      - PGID=1000
+#    extends:  # (optional if using hardware transcoding)
+#      file: hwaccel.transcoding.yml
+#      service: # Replace with the name of the service you want to extend
+
+networks:
+  nat:
+    external: true

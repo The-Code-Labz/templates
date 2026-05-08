@@ -1,0 +1,213 @@
+services:
+  # Server Service (FastAPI + Socket.IO + Crawling)
+  archon-server:
+    image: otakulabz/archon:server-latest
+    container_name: archon-server
+    restart: unless-stopped
+#    ports:
+#      - "8181:8181"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
+      - SERVICE_DISCOVERY_MODE=docker_compose
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ARCHON_SERVER_PORT=${ARCHON_SERVER_PORT:-8181}
+      - ARCHON_MCP_PORT=${ARCHON_MCP_PORT:-8051}
+      - ARCHON_AGENTS_PORT=${ARCHON_AGENTS_PORT:-8052}
+      - AGENTS_ENABLED=${AGENTS_ENABLED:-false}
+      - ARCHON_HOST=${HOST:-localhost}
+    networks:
+      - nat
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Docker socket for MCP container control
+      - ./python/src:/app/src # Mount source code for hot reload
+      - ./python/tests:/app/tests # Mount tests for UI test execution
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      [
+        "python",
+        "-m",
+        "uvicorn",
+        "src.server.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "${ARCHON_SERVER_PORT:-8181}",
+        "--reload",
+      ]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:${ARCHON_SERVER_PORT:-8181}/health'')"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archon-server.entrypoints=websecure"
+      - "traefik.http.routers.archon-server.rule=Host(`archon-server.your-server.com`)"
+      - "traefik.http.routers.archon-server.tls=true"
+      - "traefik.http.routers.archon-server.tls.certresolver=cloudflare"
+      - "traefik.http.services.archon-server.loadbalancer.server.port=8181"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.archon-server.service=archon-server"
+#######################################################################################################
+  # Lightweight MCP Server Service (HTTP-based)
+  archon-mcp:
+    image: otakulabz/archon:mcp-latest
+    container_name: archon-mcp
+    restart: unless-stopped
+#    ports:
+#      - "8051:8051"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
+      - SERVICE_DISCOVERY_MODE=docker_compose
+      - TRANSPORT=sse
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # MCP needs to know where to find other services
+      - API_SERVICE_URL=http://archon-server:8181
+      - AGENTS_ENABLED=${AGENTS_ENABLED:-false}
+      - AGENTS_SERVICE_URL=${AGENTS_SERVICE_URL:-http://archon-agents:8052}
+      - ARCHON_MCP_PORT=8051
+      - ARCHON_SERVER_PORT=8181
+      - ARCHON_AGENTS_PORT=8052
+    networks:
+      - nat
+    depends_on:
+      archon-server:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          'python -c "import socket; s=socket.socket(); s.connect((''localhost'', ${ARCHON_MCP_PORT:-8051})); s.close()"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s # Give dependencies time to start
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archon-mcp.entrypoints=websecure"
+      - "traefik.http.routers.archon-mcp.rule=Host(`archon-mcp.your-server.com`)"
+      - "traefik.http.routers.archon-mcp.tls=true"
+      - "traefik.http.routers.archon-mcp.tls.certresolver=cloudflare"
+      - "traefik.http.services.archon-mcp.loadbalancer.server.port=8051"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.archon-mcp.service=archon-mcp"
+#######################################################################################################
+  # AI Agents Service (ML/Reranking)
+  archon-agents:
+    image: otakulabz/archon:agents-latest
+    container_name: archon-agents
+    restart: unless-stopped
+#    ports:
+#      - "8052:8052"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
+      - SERVICE_DISCOVERY_MODE=docker_compose
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ARCHON_AGENTS_PORT=8052
+      - ARCHON_SERVER_PORT=8181
+    networks:
+      - nat
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:8052/health'')"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archon-agents.entrypoints=websecure"
+      - "traefik.http.routers.archon-agents.rule=Host(`archon-agents.your-server.com`)"
+      - "traefik.http.routers.archon-agents.tls=true"
+      - "traefik.http.routers.archon-agents.tls.certresolver=cloudflare"
+      - "traefik.http.services.archon-agents.loadbalancer.server.port=8052"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.archon-agents.service=archon-agents"
+#######################################################################################################
+  # Frontend
+  archon-frontend:
+    image: otakulabz/archon:frontend-latest
+    restart: unless-stopped
+    container_name: archon-ui
+#    ports:
+#      - "3737:3737"
+    environment:
+      # Don't set VITE_API_URL so frontend uses relative URLs through proxy
+      # - VITE_API_URL=http://${HOST:-localhost}:${ARCHON_SERVER_PORT:-8181}
+      - VITE_ARCHON_SERVER_PORT=8181
+      - ARCHON_SERVER_PORT=8181
+      - HOST=${HOST:-localhost}
+      - PROD=${PROD:-false}
+      - VITE_ALLOWED_HOSTS=${VITE_ALLOWED_HOSTS:-}
+      - VITE_SHOW_DEVTOOLS=${VITE_SHOW_DEVTOOLS:-false}
+      - DOCKER_ENV=true
+    networks:
+      - nat
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3737"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./archon-ui-main/src:/app/src
+      - ./archon-ui-main/public:/app/public
+    depends_on:
+      archon-server:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archon-ui.entrypoints=websecure"
+      - "traefik.http.routers.archon-ui.rule=Host(`archon-ui.your-server.com`)"
+      - "traefik.http.routers.archon-ui.tls=true"
+      - "traefik.http.routers.archon-ui.tls.certresolver=cloudflare"
+      - "traefik.http.services.archon-ui.loadbalancer.server.port=3737"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.archon-ui.service=archon-ui"
+# ###################################################################################################
+  docs:  # Documentation Server (optional)
+    image: otakulabz/archon:docs-latest
+    pull_policy: always
+    container_name: archon-documents
+    restart: unless-stopped
+#    ports:
+#      - "3838:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archon-documents.entrypoints=websecure"
+      - "traefik.http.routers.archon-documents.rule=Host(`archon-documents.your-server.com`)"
+      - "traefik.http.routers.archon-documents.tls=true"
+      - "traefik.http.routers.archon-documents.tls.certresolver=cloudflare"
+      - "traefik.http.services.archon-documents.loadbalancer.server.port=80"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.archon-documents.service=archon-documents"
+    networks:
+      - nat
+networks:
+  nat:
+    external: true

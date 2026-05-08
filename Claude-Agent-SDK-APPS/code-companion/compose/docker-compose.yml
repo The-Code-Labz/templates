@@ -1,0 +1,29 @@
+services:
+  code-companion:
+    build: .
+    container_name: code-companion
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ${WORKSPACE_PATH:-./workspace}:/workspace
+      # Mount your local Claude CLI credentials so the container uses your subscription
+      - ${CLAUDE_CONFIG_PATH}:/root/.claude
+    environment:
+      - WORKSPACE_PATH=/workspace
+    networks:
+      - nat
+#    labels: # (optional only for using traefik) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.claude-code.entrypoints=websecure"
+#      - "traefik.http.routers.claude-code.rule=Host(`claude-code.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.claude-code.tls=true"
+#      - "traefik.http.routers.claude-code.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.claude-code.loadbalancer.server.port=8000"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.claude-code.service=claude-code"  
+networks:
+  nat:
+    external: true
+

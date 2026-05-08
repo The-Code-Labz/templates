@@ -1,0 +1,29 @@
+services:
+  shoko:
+    image: shokoanime/server:latest
+    container_name: shoko
+    restart: unless-stopped
+#    ports:
+#      - "8111:8111" # Web UI and API
+    volumes:
+      - ./shoko/config:/home/shoko/.shoko
+      - ./anime:/home/shoko/anime # Replace with your actual anime path
+      - ./import:/home/shoko/import # Optional import folder
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.shoko.entrypoints=websecure"
+      - "traefik.http.routers.shoko.rule=Host(`shoko.yourdomain.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.shoko.tls=true"
+      - "traefik.http.routers.shoko.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.shoko.loadbalancer.server.port=8111"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.shoko.service=shoko"        
+networks:
+  nat:
+    external: true

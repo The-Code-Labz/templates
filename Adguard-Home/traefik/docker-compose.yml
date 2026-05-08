@@ -1,0 +1,35 @@
+services:
+  adguard:
+    image: adguard/adguardhome:v0.107.57
+    container_name: adguardhome
+    restart: always
+    volumes:
+      - ./adguard_data:/opt/adguardhome/work
+      - ./adguard_conf:/opt/adguardhome/conf
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+#      - "80:80/tcp"
+#      - "443:443/tcp"
+      - "3000:3000/tcp"
+    environment:
+      - TZ=America/Los_Angeles
+      - PUID=1000
+      - PGID=1000
+      - DEBUG=true
+    networks:
+      - nat
+    labels:  # Traefik labels for routing traffic to the container
+      - "traefik.enable=true"
+      - "traefik.http.routers.adguard.rule=Host(`adguard.example.com`)"
+      - "traefik.http.services.adguard.loadbalancer.server.port=80"
+      - "traefik.http.routers.adguard.entrypoints=websecure"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.adguard.tls=true"
+      - "traefik.http.routers.adguard.tls.certresolver=myresolver"
+#      - "com.centurylinklabs.watchtower.enable=true" # Enable watchtower for auto-updates
+      - "traefik.http.routers.adguard.service=adguard"
+#      - "traefik.http.routers.adguard.middlewares=authentik@file"  # Middleware for basic auth``
+networks:
+  nat:
+    external: true

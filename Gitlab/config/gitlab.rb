@@ -1,5 +1,5 @@
 # -- Change GitLab settings here...
-external_url 'https://your-gitlab-fqdn'  # <-- Replace with your GitLab FQDN
+external_url 'https://gitlab.example.com'  # <-- Replace with your GitLab FQDN
 
 # -- (Optional) Change GitLab Shell settings here...
 gitlab_rails['gitlab_shell_ssh_port'] = 2424
@@ -10,21 +10,21 @@ nginx['listen_port']  = 80
 nginx['listen_https'] = false
 
 # --> (Optional) Enable Container Registry settings here...
-# registry_external_url 'https://your-registry-fqdn'  # <-- Replace with your registry FQDN
-# gitlab_rails['registry_enabled']  = true
-# registry_nginx['listen_https']    = false
-# registry_nginx['listen_port']     = 5678  # <-- Replace with your registry port
+ registry_external_url 'https://registry.example.com'  # <-- Replace with your registry FQDN
+ gitlab_rails['registry_enabled']  = true
+ registry_nginx['listen_https']    = false
+ registry_nginx['listen_port']     = 5678  # <-- Replace with your registry port
 # <--
 
 ## Enable GitLab Pages --------------------------------------->
-#pages_external_url "https://pages.example.com"
+pages_external_url "https://pages.example.com"
 
-#gitlab_pages['enable'] = true
-#gitlab_pages['redirect_http'] = false # Change to `true` if you want automatic HTTPS redirection
-#gitlab_pages['access_control'] = true  # Set to true if you want private Pages
-#pages_nginx['enable'] = false  # If using Traefik, disable GitLab's internal NGINX
-## Set the listen address and port
-#gitlab_pages['listen_proxy'] = "0.0.0.0:8090"
+gitlab_pages['enable'] = true
+gitlab_pages['redirect_http'] = false # Change to `true` if you want automatic HTTPS redirection
+gitlab_pages['access_control'] = true  # Set to true if you want private Pages
+pages_nginx['enable'] = false  # If using Traefik, disable GitLab's internal NGINX
+# Set the listen address and port
+gitlab_pages['listen_proxy'] = "0.0.0.0:8090"
 #<----------------------------------------------
 
 
@@ -59,14 +59,15 @@ nginx['listen_https'] = false
 
 # --> (Optional) Change SMTP settings here...
 # gitlab_rails['smtp_enable']           = true
-# gitlab_rails['smtp_address']          = "your-smtp-server-addr"  # <-- Replace with your SMTP server address
-# gitlab_rails['smtp_port']             = 465
-# gitlab_rails['smtp_user_name']        = "your-smtp-username"  # <-- Replace with your SMTP username
-# gitlab_rails['smtp_password']         = "your-smtp-password"  # <-- Replace with your SMTP password
+# gitlab_rails['smtp_address']          = "smtp.yourdomain.com"  # <-- Replace with your SMTP server address
+# gitlab_rails['smtp_port']             = 25
+# gitlab_rails['smtp_user_name']        = "username"  # <-- Replace with your SMTP username
+# gitlab_rails['smtp_password']         = "password"  # <-- Replace with your SMTP password
 # gitlab_rails['smtp_domain']           = "your-smtp-domain"  # <-- Replace with your SMTP domain
+# gitlab_rails['smtp_starttls_auto']    = true  # ✅ Needed for STARTTLS also with port 587
 # gitlab_rails['smtp_authentication']   = "login"
-# gitlab_rails['smtp_ssl']              = true
-# gitlab_rails['smtp_force_ssl']        = true
-# gitlab_rails['gitlab_email_from']     = 'your-email-from-addr'  # <-- Replace with your email from address
-# gitlab_rails['gitlab_email_reply_to'] = 'your-email-replyto-addr'  # <-- Replace with your email reply-to address
+# gitlab_rails['smtp_ssl']              = true # ✅ Needed for SMTPS on port 465
+# gitlab_rails['smtp_force_ssl']        = true # ✅ Needed for SMTPS on port 465
+# gitlab_rails['gitlab_email_from']     = 'support@example.com'  # <-- Replace with your email from address
+# gitlab_rails['gitlab_email_reply_to'] = 'support@example.com'  # <-- Replace with your email reply-to address
 # <--

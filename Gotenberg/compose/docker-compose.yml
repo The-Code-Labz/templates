@@ -1,0 +1,37 @@
+services:
+  gotenberg:
+    image: gotenberg/gotenberg:latest
+    pull_policy: always
+    ports:
+      - 3000:3000
+    container_name: gotenberg
+    environment:
+      # NOTE: requires the --api-enable-basic-auth option in "command"
+      #       make sure to also change the credentials in Dokploy environment
+      GOTENBERG_API_BASIC_AUTH_USERNAME: ${GOTENBERG_API_BASIC_AUTH_USERNAME}
+      GOTENBERG_API_BASIC_AUTH_PASSWORD: ${GOTENBERG_API_BASIC_AUTH_PASSWORD}
+    command: [
+      "gotenberg",
+      # See the full list of options at https://gotenberg.dev/docs/configuration
+      # Examples:
+      "--api-enable-basic-auth"
+      #"--api-timeout=60s",
+      #"--chromium-auto-start"
+    ]
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.gotenberg.entrypoints=websecure"
+#      - "traefik.http.routers.gotenberg.rule=Host(`gotenberg.your-server.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.gotenberg.tls=true"
+#      - "traefik.http.routers.gotenberg.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.gotenberg.loadbalancer.server.port=3000"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.gotenberg.service=gotenberg"   # Replace with your service name
+    restart: unless-stopped
+    networks:
+      - nat
+######################################################################################
+
+networks:
+  nat:
+    external: true      

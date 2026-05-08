@@ -1,0 +1,30 @@
+services:
+  smtp-relay:
+    image: wildwildangel/postfix-relay
+    container_name: smtp-relay
+    environment:
+      - SMTP_SERVER=${SMTP_SERVER}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SERVER_HOSTNAME=${SERVER_HOSTNAME}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_NETWORKS=${SMTP_NETWORKS}
+      - DEBUG=yes
+    env_file:
+      - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.smtp.rule=HostSNI(`smtp.example.com`)"
+      - "traefik.tcp.routers.smtp.entrypoints=smtp"
+      - "traefik.tcp.routers.smtp.tls.options=default"
+      - "traefik.tcp.services.smtp.loadbalancer.server.port=25"    
+      - "traefik.tcp.routers.smtp.tls=true"
+      - "traefik.tcp.routers.smtp.tls.certresolver=cloudflare"
+    ports:
+      - 25:25  # Expose port 25 for SMTP traffic
+    networks: 
+      - nat
+    restart: unless-stopped
+networks:      
+  nat:
+    external: true

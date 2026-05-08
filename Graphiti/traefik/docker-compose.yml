@@ -1,0 +1,51 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: falkordb
+    volumes:
+      - ./falkordb-data:/data    
+    networks:
+      - nat
+    ports:
+      - "6379:6379"   # FalkorDB
+#      - "3000:3000"   # Web UI
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.falkordb.entrypoints=websecure"
+      - "traefik.http.routers.falkordb.rule=Host(`falkordb.yourdomain.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.falkordb.tls=true"
+      - "traefik.http.routers.falkordb.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.falkordb.loadbalancer.server.port=3000"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.falkordb.service=falkordb"  # Replace with your service name
+##############################################################################################################################
+  graphiti:
+    image: python:3.11-slim
+    container_name: graphiti
+    depends_on:
+      - falkordb
+    working_dir: /app
+    networks:
+      - nat
+    environment:
+      # --- LLM & Graphiti settings ---
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?set in .env}
+      OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.openai.com/v1}
+      SEMAPHORE_LIMIT: ${SEMAPHORE_LIMIT:-10}
+      # FalkorDB connection
+      FALKORDB_URL: redis://falkordb:6379
+    volumes:
+      - ./app:/app   # put your Graphiti scripts/examples in ./app
+    command: >
+      sh -c "
+        apt-get update &&
+        apt-get install -y --no-install-recommends gcc build-essential curl python3-pip &&
+        pip install --no-cache-dir 'graphiti-core[falkordb,google-genai,anthropic,groq]' &&
+        python -c \"import importlib.metadata as md; print('graphiti-core version:', md.version('graphiti-core'))\" &&
+        tail -f /dev/null
+      "
+    restart: unless-stopped
+networks:
+  nat:
+    external: true    

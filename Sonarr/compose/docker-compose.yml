@@ -1,0 +1,29 @@
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /path/to/sonarr/data:/config
+      - /path/to/tvseries:/tv #optional
+      - /path/to/downloadclient-downloads:/downloads #optional
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+    networks:
+      - nat
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.sonarr.entrypoints=websecure"
+#      - "traefik.http.routers.sonarr.rule=Host(`sonarr.yourdomain.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.sonarr.tls=true"
+#      - "traefik.http.routers.sonarr.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.sonarr.loadbalancer.server.port=8989"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.sonarr.service=sonarr"  
+networks:
+  nat:
+    external: true      

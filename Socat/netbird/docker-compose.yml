@@ -15,14 +15,14 @@ services:
       - NET_ADMIN
       - SYS_MODULE
     healthcheck:      #(optinal) if you want to make sure your netbird container is connected
-    test: ["CMD", "pgrep", "netbird"]
-    interval: 30s
-    timeout: 5s
-    retries: 3
+      test: ["CMD", "pgrep", "netbird"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 ############################################################################################################
   socat:
     image: alpine/socat
-    pull: always
+    pull_policy: always
     restart: always
     container_name: socat-docker
     depends_on:
@@ -32,7 +32,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: TCP-LISTEN:2375,fork,reuseaddr UNIX-CONNECT:/var/run/docker.sock
-    restart: always
     healthcheck:
       test: ["CMD", "socat", "-h"]
       interval: 60s

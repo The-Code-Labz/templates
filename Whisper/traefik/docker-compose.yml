@@ -1,0 +1,116 @@
+services:
+  whisper:
+    container_name: whisper
+    image: pluja/whishper:latest-gpu
+#    ports:
+#      - "8080:80"
+    env_file:
+      - .env
+    depends_on:
+      - translate
+      - mongo
+    networks:
+      - nat
+    volumes:
+#      - /etc/timezone:/etc/timezone:ro
+      - ./uploads:/app/uploads
+      - ./logs:/var/log/whishper
+      - ./models:/app/models
+    restart: unless-stopped
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      # ===================== UI (Nginx :80) =====================
+      - "traefik.http.services.whisper.loadbalancer.server.port=80"
+      - "traefik.http.services.whisper.loadbalancer.server.scheme=http"
+      - "traefik.http.routers.whisper-ui.rule=Host(`whisper.yourdomain.com`) && PathPrefix(`/`)"
+      - "traefik.http.routers.whisper-ui.entrypoints=websecure"
+      - "traefik.http.routers.whisper-ui.tls=true"
+      - "traefik.http.routers.whisper-ui.tls.certresolver=cloudflare"
+      - "traefik.http.routers.whisper-ui.priority=10"
+      - "traefik.http.routers.whisper-ui.service=whisper"
+      - "traefik.http.middlewares.ui-headers.headers.customresponseheaders.X-Routed-By=traefik-whisper-ui"
+      - "traefik.http.routers.whisper-ui.middlewares=ui-headers@docker"
+      # ===================== API (Uvicorn :8000) =====================
+      - "traefik.http.services.whisper-api.loadbalancer.server.port=8000"
+      - "traefik.http.services.whisper-api.loadbalancer.server.scheme=http"
+      - "traefik.http.routers.whisper-api.rule=Host(`whisper.yourdomain.com`) && (PathPrefix(`/transcribe`) || PathPrefix(`/languages`))"
+      - "traefik.http.routers.whisper-api.entrypoints=websecure"
+      - "traefik.http.routers.whisper-api.tls=true"
+      - "traefik.http.routers.whisper-api.tls.certresolver=cloudflare"
+      # *** CRITICAL: bind router -> service explicitly ***
+      - "traefik.http.routers.whisper-api.service=whisper-api"
+      # Make sure API router wins over the UI catch-all
+      - "traefik.http.routers.whisper-api.priority=1000"
+      # Helpful headers (debug + correct https behind proxy)
+      - "traefik.http.middlewares.api-headers.headers.customresponseheaders.X-Routed-By=traefik-whisper-api"
+      - "traefik.http.middlewares.api-forward.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.api-forward.headers.customrequestheaders.X-Forwarded-Host=whisper.yourdomain.com"
+      - "traefik.http.routers.whisper-api.middlewares=api-headers@docker,api-forward@docker"
+    environment:
+#      - PUID=${PUID:-1000}
+#      - PGID=${PGID:-1000}
+      - PUBLIC_INTERNAL_API_HOST=http://127.0.0.1:80
+      - PUBLIC_TRANSLATION_API_HOST=http://translate:5000 
+      - PUBLIC_API_HOST=${WHISHPER_HOST}
+      - PUBLIC_WHISHPER_PROFILE=gpu
+      - WHISPER_MODELS_DIR=/app/models
+      - UPLOAD_DIR=/app/uploads
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+###########################################################################################################################################
+  translate:
+    container_name: whisper-libretranslate
+    image: libretranslate/libretranslate:latest-cuda
+    env_file:
+      - .env
+    networks:
+      - nat
+    restart: unless-stopped
+    volumes:
+#      - /etc/timezone:/etc/timezone:ro
+      - ./libretranslate/data:/home/libretranslate/.local/share
+      - ./libretranslate/cache:/home/libretranslate/.local/cache
+    user: root
+    tty: true
+    environment:
+#      - PUID=${PUID:-1000}
+#      - PGID=${PGID:-1000}
+      - LT_DISABLE_WEB_UI=True
+      - LT_LOAD_ONLY=${LT_LOAD_ONLY:-en,fr,es}
+      - LT_UPDATE_MODELS=True
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+#######################################################################################################################
+  mongo:
+    image: mongo
+    container_name: mongo_whisper
+    env_file:
+      - .env
+    networks:
+      - nat
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./mongo/data:/data/db
+      - ./mongo/logs:/var/log/mongodb/
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USER:-whishper}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASS:-whishper}
+    command: ['--logpath', '/var/log/mongodb/mongod.log']            
+networks:
+  nat:
+    external: true

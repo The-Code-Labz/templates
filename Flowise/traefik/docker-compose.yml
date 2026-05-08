@@ -1,0 +1,42 @@
+services:
+  flowise:
+    image: flowiseai/flowise
+    container_name: flowise
+#    ports:
+#      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - ./flowise_data:/app/data
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.flowise.rule=Host(`flowise.yourdomain.com`)"
+      - "traefik.http.services.flowise.loadbalancer.server.port=3000"
+      - "traefik.http.routers.flowise.entrypoints=websecure"
+      - "traefik.http.routers.flowise.tls=true"
+      - "traefik.http.routers.flowise.tls.certresolver=cloudflare"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.flowise.service=flowise"
+    networks:
+      - nat
+#####################################################################################      
+  postgres:
+    image: postgres:13
+    container_name: postgres_flowise
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - nat
+#####################################################################################
+
+networks:
+  nat:
+    external: true

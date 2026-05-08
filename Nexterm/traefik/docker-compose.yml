@@ -5,6 +5,8 @@ services:
     restart: unless-stopped
     volumes:
       - ./terminal:/app/data
+    environment:
+      - ENCRYPTION_KEY=$(openssl rand -hex 32)       
     networks:
       - nat
 #    ports:
@@ -25,6 +27,6 @@ services:
       - "traefik.http.routers.terminal.service=terminal"  
 #      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
 #      - "traefik.http.routers.terminal.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)    
-network:
+networks:
   nat:
     external: true      

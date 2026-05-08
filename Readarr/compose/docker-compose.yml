@@ -1,0 +1,31 @@
+services:
+  readarr:
+    image: linuxserver/readarr:0.4.19-nightly
+    container_name: readarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /path/to/readarr/data:/config
+      - /path/to/books:/books #optional
+      - /path/to/download-client-downloads:/downloads #optional
+    ports:
+      - 8787:8787
+    restart: unless-stopped
+    networks:
+      - nat
+#    labels:
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.readarr.entrypoints=websecure"
+#      - "traefik.http.routers.readarr.rule=Host(`readarr.yourdomain.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.readarr.tls=true"
+#      - "traefik.http.routers.readarr.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.readarr.loadbalancer.server.port=8787"    
+#      - "traefik.docker.network=nat" 
+#      - "traefik.http.routers.readarr.service=readarr"  
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.readarr.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+networks:
+  nat:
+    external: true      

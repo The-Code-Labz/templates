@@ -1,0 +1,30 @@
+services:
+  firefox:
+    image: lscr.io/linuxserver/firefox:latest
+    container_name: firefox
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - FIREFOX_CLI=https://www.linuxserver.io/ #optional
+    volumes:
+      - /path/to/firefox/config:/config
+#    ports:
+#      - 3000:3000  #HTTP
+#      - 3001:3001  #HTTPs
+    shm_size: "1gb"
+    restart: unless-stopped
+    networks:
+      - nat
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.http.routers.firefox.entrypoints=websecure"
+      - "traefik.http.routers.firefox.rule=Host(`firefox.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.firefox.tls=true"
+      - "traefik.http.routers.firefox.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.firefox.loadbalancer.server.port=3000"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.firefox.service=firefox"     
+networks:
+  nat:
+    external: true       

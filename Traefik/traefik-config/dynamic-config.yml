@@ -1,0 +1,45 @@
+http:
+  routers:
+    your-roter-name: # Replace with a unique name
+      rule: "Host(`example.com`)" # Replace with your domain
+      service: your-service-name # Replace with the name of your service
+      entryPoints:
+        - websecure
+#      middlewares:
+#        - no-auth
+      tls:
+        certResolver: letsencrypt # Use the Let's Encrypt resolver defined in traefik.yml file or replace with your own
+
+  services:
+    your-service-name: # Replace with the name of your service:
+      loadBalancer:
+        servers:
+          - url: "" # The backend service to route traffic to
+#            weight: 100 # Optional, default is 100
+#        healthCheck:  # (optional)
+#          path: "/health" # Or the appropriate health check endpoint
+#          interval: "10s"  # Check every 10 seconds
+#          timeout: "3s"   # Timeout after 3 seconds          
+################## (Optional) ##################
+#  middlewares:
+#    your-middleware-name: # Replace with a unique name
+#      basicAuth:
+#        users:
+
+#tcp:
+#  routers:
+#    your-tcp-router-name: # Replace with a unique name
+#      rule: "HostSNI(`example.com`)" # Replace with your domain
+#      service: your-tcp-service-name # Replace with the name of your service
+#      entryPoints:
+#        - websecure
+#      middlewares:
+#        - traefik-real-ip
+#      tls:
+#        passthrough: true
+#       certResolver: letsencrypt # Use the Let's Encrypt resolver defined in traefik.yml file or replace with your own'
+#  services:
+#    your-tcp-service-name: # Replace with the name of your service
+#      loadBalancer:
+#        servers:
+#          - address: "" # The backend service to route traffic to

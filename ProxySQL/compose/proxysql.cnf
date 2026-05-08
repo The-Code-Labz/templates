@@ -1,0 +1,42 @@
+datadir="/var/lib/proxysql"
+admin_variables=
+{
+  admin_credentials="admin:admin"
+  mysql_ifaces="0.0.0.0:6032"
+}
+
+mysql_variables=
+{
+  threads=4
+  max_connections=2048
+  default_query_delay=0
+  default_query_timeout=36000000
+  poll_timeout=2000
+  interfaces="0.0.0.0:6033"
+  default_schema="information_schema"
+}
+
+mysql_servers =
+(
+  {
+    address = "mariadb"
+    port = 3306
+    hostgroup = 0
+    max_connections = 100
+  }
+)
+
+mysql_users =
+(
+  {
+    username = "mnemos"
+    password = "3rJwVtdpfvJh"
+    default_hostgroup = 0
+    transaction_persistent = 0
+  }
+)
+
+mysql_query_rules =
+(
+)
+

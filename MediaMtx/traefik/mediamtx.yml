@@ -1,0 +1,44 @@
+rtmp: yes
+rtsp: yes
+hls: yes
+webrtc: no
+srt: yes
+
+rtmpAddress: ":1935"
+rtspAddress: ":8554"
+hlsAddress: ":8888"
+srtAddress: ":9000"
+
+# paths: define the exact path you use for clarity
+paths:
+  live/stream: {}
+  # (optional) keep wildcard for other names
+  ~^.*$: {}
+
+api: yes
+apiAddress: ":9997"
+
+# use ONLY the v1.x auth system
+authInternalUsers:
+  # allow peers to READ/PLAYBACK with no password
+  - user: any
+    pass:
+    ips: ['127.0.0.1', '::1']  # <- your IP(s) whatever your local IP is
+    permissions:
+      - action: read
+      - action: playback
+      
+  - user: dlynton
+    pass: Dontebolye5811
+    permissions:
+      - action: api
+      - action: metrics
+      - action: playback
+      - action: publish
+      - action: read
+hls: yes
+hlsAlwaysRemux: yes          # keeps HLS muxer alive
+hlsVariant: standard         # <- use classic HLS (no LL-HLS PARTS)
+hlsSegmentDuration: 4s       # segment length; 2–6s are typical
+# ensure parts are off (if your version uses parts):
+hlsPartDuration: 0s          # 0 disables LL-HLS parts (if the key exists)

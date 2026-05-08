@@ -1,0 +1,71 @@
+services:
+  neo4j:
+    image: neo4j:5.26.0
+    container_name: graphiti_mcp_neo4j
+    restart: unless-stopped
+    networks:
+      - nat
+#    ports:
+#      - "7474:7474" # HTTP
+      - "7687:7687" # Bolt also needed for traefik tcp
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-demodemo}
+      - NEO4J_server_memory_heap_initial__size=512m
+      - NEO4J_server_memory_heap_max__size=1G
+      - NEO4J_server_memory_pagecache_size=512m
+    volumes:
+      - ./neo4j_data:/data
+      - ./neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD", "wget", "-O", "/dev/null", "http://localhost:7474"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    labels:  # (optional only for using traefik) ----->
+      - traefik.enable=true
+      - traefik.http.services.neo4j.loadbalancer.server.port=7474
+      - traefik.http.routers.neo4j.service=neo4j
+      - traefik.http.routers.neo4j.rule=Host(`neo4j.yourdomain.com`)
+      - traefik.http.routers.neo4j.entrypoints=web
+      - traefik.docker.network=nat
+      # --- Neo4j Bolt / TCP ---  for traefik you need to add a entry point on port 7687 and name it bolt
+      - traefik.tcp.services.neo4j-bolt.loadbalancer.server.port=7687
+      - traefik.tcp.routers.neo4j-bolt.service=neo4j-bolt
+      - traefik.tcp.routers.neo4j-bolt.rule=HostSNI(`*`)
+      - traefik.tcp.routers.neo4j-bolt.entrypoints=bolt
+# <---------------------------------------------------------------------------
+#################################################################################
+  graphiti_mcp:
+    image: otakulabz/graphiti-mcp:latest
+    container_name: graphiti_mcp
+    restart: unless-stopped
+    networks:
+      - nat
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    environment:
+      - NEO4J_URI=${NEO4J_URI:-bolt://neo4j:7687}
+      - NEO4J_USER=${NEO4J_USER:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-demodemo}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MODEL_NAME=${MODEL_NAME}
+      - PATH=/root/.local/bin:${PATH}
+      - SEMAPHORE_LIMIT=${SEMAPHORE_LIMIT:-10}
+#    ports:
+#      - "8000:8000" # Expose the MCP server via HTTP for SSE transport
+    command: ["uv", "run", "graphiti_mcp_server.py", "--transport", "sse"]
+    labels:  # (optional only for using traefik) ----->
+      - traefik.enable=true
+      - traefik.http.services.graphiti_mcp.loadbalancer.server.port=8000
+      - traefik.http.routers.graphiti_mcp.service=graphiti_mcp
+      - traefik.http.routers.graphiti_mcp.rule=Host(`graphiti_mcp.yourdomain.com`)
+      - traefik.http.routers.graphiti_mcp.entrypoints=websecure
+      - traefik.http.routers.graphiti_mcp.tls=true
+      - traefik.http.routers.graphiti_mcp.tls.certresolver=cloudflare
+      - traefik.docker.network=nat
+# <---------------------------------------------------------------------------
+networks:
+  nat:
+    external: true

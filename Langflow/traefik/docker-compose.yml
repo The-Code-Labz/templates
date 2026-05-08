@@ -1,0 +1,44 @@
+services:
+  langflow:
+    image: langflowai/langflow:v1.1.1
+    container_name: langflow
+    restart: unless-stopped
+#    ports:
+#      - 7860:7860
+    depends_on:
+      - postgres
+    environment:
+      - LANGFLOW_DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      # This variable defines where the logs, file storage, monitor data and secret keys are stored.
+    volumes:
+      - ./langflow/data:/app/langflow
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.langflow.entrypoints=websecure"
+      - "traefik.http.routers.langflow.rule=Host(`langflow.your-server.com`)"
+      - "traefik.http.routers.langflow.tls=true"
+      - "traefik.http.routers.langflow.tls.certresolver=cloudflare"
+      - "traefik.http.services.langflow.loadbalancer.server.port=7860"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.langflow.service=langflow"
+#######################################################################################################
+  postgres:
+    image: postgres:16
+    container_name: postgres-langflow
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+#    ports:
+#      - 5432:5432
+    volumes:
+      - ./langflow/postgres:/var/lib/postgresql/data
+    networks:
+      - nat
+#######################################################################################################
+networks:
+  nat:
+    external: true      

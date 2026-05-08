@@ -1,0 +1,33 @@
+services:
+  anythingllm:
+    image: mintplexlabs/anythingllm:latest
+    pull_policy: always
+    user: "1000:1000" # set to your host user's UID & GID if you encounter permissions issues or use root 
+    container_name: anythingllm
+    networks:
+      - nat
+    restart: unless-stopped
+#    ports:
+#      - "3001:3001"
+    environment:
+      - STORAGE_DIR=/app/server/storage
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./storage:/app/server/storage
+    cap_add:
+      - SYS_ADMIN
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.anythingllm.entrypoints=websecure"
+      - "traefik.http.routers.anythingllm.rule=Host(`anythingllm.your-server.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.anythingllm.tls=true"
+      - "traefik.http.routers.anythingllm.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.anythingllm.loadbalancer.server.port=3001"    
+      - "traefik.docker.network=nat" 
+      - "traefik.http.routers.anythingllm.service=anythingllm"   # Replace with your service name
+######################################################################################
+
+networks:
+  nat:
+    external: true

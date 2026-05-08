@@ -1,0 +1,53 @@
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: mediamtx
+    environment:
+      # Force RTSP to TCP (server-side), no UDP
+      - MTX_RTSPTRANSPORTS=tcp  
+    restart: unless-stopped
+    ports:
+      - "1935:1935/tcp"   # RTMP out (for OBS on Shadow)
+      - "8554:8554/tcp"   # RTSP out (optional)
+      - "8888:8888/tcp"   # HLS/LL-HLS out (optional)
+      - "9997:9997"   # Web UI / metrics (optional)
+      - "9000:9000/udp"   # SRT ingest
+    networks:
+      - nat
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+    # no ports: Traefik will proxy them
+#    labels:  # (optional only for using traefik) ----->
+#      - "traefik.enable=true"
+#      - "traefik.docker.network=nat"
+#      # --- Web UI (HTTP router)
+#      - "traefik.http.routers.mtx-web-ui.entrypoints=websecure"
+#      - "traefik.http.routers.mtx-web-ui.rule=Host(`mtx.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.mtx-web-ui.tls=true"
+#      - "traefik.http.routers.mtx-web-ui.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.mtx-web-ui.loadbalancer.server.port=9997"    
+#      - "traefik.http.routers.mtx-web-ui.service=mtx-web-ui"   
+#      # --- HLS over HTTPS (HTTP router) ---
+#      - "traefik.http.routers.mtx-hls.rule=Host(`stream.yourdomain.com`)"
+#      - "traefik.http.routers.mtx-hls.entrypoints=websecure"
+#      - "traefik.http.routers.mtx-hls.tls=true"
+#      - "traefik.http.routers.mtx-hls.tls.certresolver=cloudflare"
+#      - "traefik.http.services.mtx-hls.loadbalancer.server.port=8888"
+#      - "traefik.http.routers.mtx-hls.service=mtx-hls"
+#      # --- RTMP (TCP router) ---
+#      - "traefik.tcp.routers.mtx-rtmp.rule=HostSNI(`rtmp.yourdomain.com`)"
+#      - "traefik.tcp.routers.mtx-rtmp.entrypoints=rtmp"
+#      - "traefik.tcp.services.mtx-rtmp.loadbalancer.server.port=1935"
+#      - "traefik.tcp.routers.mtx-rtmp.service=mtx-rtmp"
+#      # --- RTSP over TCP (TCP router) ---
+#      - "traefik.tcp.routers.mtx-rtsp.rule=HostSNI(`rtsp.yourdomain.com`)"
+#      - "traefik.tcp.routers.mtx-rtsp.entrypoints=rtsp"
+#      - "traefik.tcp.services.mtx-rtsp.loadbalancer.server.port=8554"
+#      - "traefik.tcp.routers.mtx-rtsp.service=mtx-rtsp"
+#      # --- SRT (UDP router) ---
+#      - "traefik.udp.routers.mtx-srt.entrypoints=srt"
+#      - "traefik.udp.services.mtx-srt.loadbalancer.server.port=9000"
+#      - "traefik.udp.routers.mtx-srt.service=mtx-srt"
+networks:
+  nat:
+    external: true

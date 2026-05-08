@@ -1,23 +1,20 @@
 services:
   code-server:
-    image: otakulabz/codeserver-docker:latest
+    image: gitpod/openvscode-server:1.98.0
     container_name: code-server
     user: root
     environment:
       - TZ=AMERICA/LOS_ANGELOS
-      - PASSWORD=${PASSWORD} #optional
-      - SUDO_PASSWORD=${SUDO_PASSWORD} #optional
-    #  - PROXY_DOMAIN=codeserver.example.com #optionall
     volumes:
-      - ./config:/config
-      - ./workspace:/home/coder/code-server
+      - ./workspace:/home/workspace:cached
+      - /var/run/docker.sock:/var/run/docker.sock
   #  ports:
-  #    - 8080:8080
+  #    - 3000:3000
     restart: unless-stopped
     networks:
       - nat
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 1m
       timeout: 10s
       retries: 3      
@@ -27,7 +24,7 @@ services:
       - "traefik.http.routers.codeserver.rule=Host(`codeserver.example.com`)" # Replace with your desired hostname
       - "traefik.http.routers.codeserver.tls=true"
       - "traefik.http.routers.codeserver.tls.certresolver=cloudflare" # Replace with your cert resolver name
-      - "traefik.http.services.codeserver.loadbalancer.server.port=your-port"    
+      - "traefik.http.services.codeserver.loadbalancer.server.port=3000"    
       - "traefik.docker.network=nat" 
       - "traefik.http.routers.codeserver.service=codeserver"  
 #      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)

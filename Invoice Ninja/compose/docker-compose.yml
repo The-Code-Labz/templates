@@ -1,0 +1,50 @@
+services:
+  invoice-ninja:
+    image: invoiceninja/invoiceninja:latest
+    container_name: invoice-ninja
+    environment:
+      - APP_KEY=${APP_KEY}
+      - APP_URL=${APP_URL}
+      - DB_TYPE=mysql
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "7777:9000"
+    networks:
+      - nat
+    volumes:
+      - ./invoice-ninja-data:/var/www/html/storage
+    labels:   #(optional)
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.invoiceninja.rule=Host(`ninja.example.com`)' # change this to your domain
+      - 'traefik.http.services.invoiceninja.loadbalancer.server.port=9000'
+      - 'traefik.http.routers.invoiceninja.entrypoints=websecure'
+      - 'traefik.http.routers.invoiceninja.tls=true'
+      - 'traefik.http.routers.invoiceninja.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.invoiceninja.service=invoiceninja'
+#########################################################################################
+  db:
+    image: mysql:5.7
+    container_name: invoice-ninja-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+networks:
+  nat:
+    external: true

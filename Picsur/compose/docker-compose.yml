@@ -2,13 +2,16 @@ services:
   picsur:
     image: ghcr.io/caramelfur/picsur:latest
     container_name: picsur
+    env_file:
+      - .env
     environment:
       PICSUR_HOST: 0.0.0.0
       PICSUR_PORT: 8080
-      PICSUR_DB_HOST: picsur_postgres
+      PICSUR_DB_HOST: ${DB_HOST}
       PICSUR_DB_PORT: 5432
       PICSUR_DB_USERNAME: ${DB_USER}
-      PICSUR_DB_PASSWORD: ${DB_PASS} # This has be same one as configured in the settings of picsur_postgres
+      PICSUR_DB_PASSWORD: ${DB_PASS}
+      PICSUR_DB_DATABASE: ${DB_NAME}
       ## Default admin username's password
       PICSUR_ADMIN_PASSWORD: ${ADMIN_PASS}
       PICSUR_JWT_SECRET: ${JWT_SECRET}
@@ -23,18 +26,6 @@ services:
         condition: service_healthy
     ports:
       - 8080:8080    
-    healthcheck:
-      test:
-        - CMD
-        - curl
-        - '-fs'
-        - '-S'
-        - '--max-time'
-        - '2'
-        - 'http://localhost:8080'
-      interval: 30s
-      timeout: 10s
-      retries: 5
 #    labels: # (optional only for using traefik) ------>
 #      - "traefik.enable=true"
 #      - "traefik.http.routers.picsur.entrypoints=websecure"
@@ -46,8 +37,6 @@ services:
 #      - "traefik.http.routers.picsur.service=picsur"
 #      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
 #      - "traefik.http.routers.picsur.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
-    ports:
-      - 8080:8080
     networks:
       - nat    
 ###############################################################################
@@ -55,7 +44,7 @@ services:
     image: postgres:17-alpine
     container_name: picsur_postgres
     environment:
-      POSTGRES_DB: picsur
+      POSTGRES_DB: ${DB_NAME}
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_USER: ${DB_USER}
     restart: unless-stopped

@@ -1,0 +1,31 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    pull_policy: always
+    container_name: portainer
+    restart: unless-stopped
+#    ports:
+#      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /path/to/portainer_data:/data
+    networks:
+      - nat
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.entrypoints=websecure"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.portainer.tls=true"
+      - "traefik.http.routers.portainer.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"    
+      - "traefik.docker.network=nat" 
+#      - "traefik.http.services.portainer.loadbalancer.server.scheme=https" # (optional, to set the scheme for your router if you want http or https)
+      - "traefik.http.routers.portainer.service=portainer"  
+#      - "traefik.http.middlewares.portainer-headers.headers.customrequestheaders.X-Forwarded-Proto=https" # (optional, to set headers for your router)
+#      - "traefik.http.routers.portainer.middlewares=portainer-headers" # (optional, to use custom headers)
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.portainer.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+networks:
+  nat:
+    external: true
+

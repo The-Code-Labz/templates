@@ -1,0 +1,29 @@
+services:
+  searxng:
+    image: searxng/searxng
+    container_name: searxng
+#    ports:
+#      - "8080:8080"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - BASE_URL=http://searxng.yourdomain.com
+      - ENABLE_THREADS=true
+      - SEARCH_ENGINE=default
+    volumes:
+      - ./searxng_data:/etc/searxng
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.searxng.rule=Host(`searxng.yourdomain.com`)"
+      - "traefik.http.services.searxng.loadbalancer.server.port=8080"
+      - "traefik.http.routers.searxng.entrypoints=websecure"
+      - "traefik.http.routers.searxng.tls=true"
+      - "traefik.http.routers.searxng.tls.certresolver=cloudflare"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.searxng.service=searxng"
+    networks:
+      - nat
+#################################################################################
+networks:
+  nat:
+    external: true
