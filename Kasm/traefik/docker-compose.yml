@@ -37,7 +37,7 @@ services:
       - "traefik.http.routers.kasm-admin.tls.certresolver=cloudflare" # Replace with your cert resolver name
       - "traefik.http.services.kasm-admin.loadbalancer.server.port=3000"    
       - "traefik.http.routers.kasm-admin.service=kasm-admin"       
-      - "traefik.http.services.kasm-admin.loadbalancer.server.scheme=https"   
+      - "traefik.http.services.kasm-admin.loadbalancer.server.scheme=http"   
     networks:
       - nat
 
