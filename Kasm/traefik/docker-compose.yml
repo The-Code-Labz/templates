@@ -23,11 +23,11 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.kasm.service=kasm"
       - "traefik.http.routers.kasm.entrypoints=websecure"
-      - "traefik.http.routers.kasm.rule=Host(`kasm.neurolearninglabs.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.kasm.rule=Host(`kasm.example.com`)" # Replace with your desired hostname
       - "traefik.http.routers.kasm.tls=true"
       - "traefik.http.routers.kasm.tls.certresolver=cloudflare" # Replace with your cert resolver name
       - "traefik.http.services.kasm.loadbalancer.server.port=443"    
-      - "traefik.docker.network=dokploy-network" 
+      - "traefik.docker.network=nat" 
       - "traefik.http.services.kasm.loadbalancer.server.scheme=https"
 ###############################################################  (for installation)--      
       - "traefik.http.routers.kasm-admin.service=kasm-admin" 
