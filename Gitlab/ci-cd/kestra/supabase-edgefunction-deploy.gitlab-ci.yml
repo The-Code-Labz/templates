@@ -1,0 +1,43 @@
+# ─────────────────────────────────────────────
+# Required GitLab CI/CD variables (Settings → CI/CD → Variables):
+#   KESTRA_URL      — https://kestra.neurolearninglabs.com
+#   KESTRA_API_USER — Kestra username
+#   KESTRA_API_PASS — Kestra password
+#   APP_SLUG        — this app's identifier e.g. stories, wiki, rag
+# ─────────────────────────────────────────────
+
+stages:
+  - deploy
+
+deploy-edge-functions:
+  stage: deploy
+  image: alpine/curl
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"'
+      changes:
+        - supabase/functions/**/*
+      when: on_success
+    - when: never
+  script:
+    - |
+      response_body="$(mktemp)"
+      http_code="$(
+        curl -sS \
+          -o "$response_body" \
+          -w '%{http_code}' \
+          -u "${KESTRA_API_USER}:${KESTRA_API_PASS}" \
+          -F "app_slug=${APP_SLUG}" \
+          -F "repo_url=${CI_PROJECT_URL}" \
+          -F "branch=${CI_COMMIT_BRANCH}" \
+          "${KESTRA_URL}/api/v1/executions/infrastructure.supabase/supabase-functions-sync"
+      )"
+      case "$http_code" in
+        2*)
+          echo "✅ Kestra sync triggered successfully (${http_code})"
+          ;;
+        *)
+          echo "❌ Kestra API call failed (${http_code})"
+          cat "$response_body"
+          exit 1
+          ;;
+      esacpe
