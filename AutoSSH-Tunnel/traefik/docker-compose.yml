@@ -1,0 +1,51 @@
+# AutoSSH Tunnel — Traefik-fronted variant
+#
+# Same auto-reconnecting tunnel as ../compose, but instead of publishing the
+# tunnel port to the host, Traefik reaches it over the shared Docker network
+# and terminates TLS in front of it. Use this when the thing on the other
+# end of the tunnel is a web service you want exposed at a domain.
+#
+# Key difference from ../compose:
+#   - SSH_BIND_IP is 0.0.0.0 (not 127.0.0.1) — Traefik is a SEPARATE
+#     container and needs to reach this one over the "nat" network, so the
+#     tunnel can't be loopback-only anymore. This is fine as long as
+#     "nat" is an internal/trusted Docker network — do NOT also publish
+#     this port to the host.
+#   - No `ports:` block — nothing is exposed directly, only via Traefik.
+#
+# Full env var reference: https://github.com/jnovack/autossh
+services:
+  autossh-tunnel:
+    image: jnovack/autossh:latest
+    container_name: autossh-tunnel
+    restart: unless-stopped
+    environment:
+      SSH_REMOTE_USER: your-tunnel-user        # dedicated, locked-down user on the remote — NOT root
+      SSH_REMOTE_HOST: your-remote-ip-or-host  # the box you're tunneling through (origin/VPN peer, e.g. NetBird IP)
+      SSH_REMOTE_PORT: 22
+      SSH_MODE: -L                             # local forward
+      SSH_BIND_IP: 0.0.0.0                     # so Traefik (a different container) can reach it
+      SSH_TUNNEL_PORT: 20128                   # port THIS container listens on
+      SSH_TARGET_HOST: 127.0.0.1               # the target, as seen from the REMOTE side
+      SSH_TARGET_PORT: 20128                   # the service on/behind the remote you want to reach
+      SSH_STRICT_HOST_IP_CHECK: "false"        # relax if remote IP is dynamic; doesn't disable host key checking
+      SSH_SERVER_ALIVE_INTERVAL: 10
+      SSH_SERVER_ALIVE_COUNT_MAX: 3
+    volumes:
+      - ./id_ed25519:/id_rsa:ro   # scoped key, read-only. Mount PATH must be /id_rsa (filename on disk doesn't matter)
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.autossh-tunnel.entrypoints=websecure"
+      - "traefik.http.routers.autossh-tunnel.rule=Host(`autossh-tunnel.example.com`)" # replace with your domain
+      - "traefik.http.routers.autossh-tunnel.tls=true"
+      - "traefik.http.routers.autossh-tunnel.tls.certresolver=cloudflare"             # replace with your cert resolver
+      - "traefik.http.services.autossh-tunnel.loadbalancer.server.port=20128"         # must match SSH_TUNNEL_PORT
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.autossh-tunnel.service=autossh-tunnel"
+      # Optional hardening — uncomment and adapt if you're running Authentik / a NetBird-only allowlist middleware:
+      # - "traefik.http.routers.autossh-tunnel.middlewares=authentik@file,netbird-only@file"
+networks:
+  nat:
+    external: true

@@ -1,0 +1,52 @@
+# AutoSSH Tunnel — auto-reconnecting SSH port forward
+#
+# Why autossh over a bare `ssh -N -L`? Plain ssh has no self-healing: if the
+# link drops but the process doesn't exit, `restart: unless-stopped` won't
+# save you (Docker only restarts on process exit, not on "tunnel is up but
+# dead"). autossh monitors the tunnel itself and force-restarts ssh when it
+# detects the connection has gone stale.
+#
+# Mode used here: SSH_MODE=-L (local forward)
+#   local (this container) ---ssh--> remote (SSH_REMOTE_HOST) ---> target (SSH_TARGET_HOST:PORT)
+#
+# This container listens on SSH_BIND_IP:SSH_TUNNEL_PORT and forwards that
+# traffic, over the SSH connection to SSH_REMOTE_HOST, to
+# SSH_TARGET_HOST:SSH_TARGET_PORT (as resolved from the REMOTE side, not
+# this container).
+#
+# Full env var reference: https://github.com/jnovack/autossh
+services:
+  autossh-tunnel:
+    image: jnovack/autossh:latest
+    container_name: autossh-tunnel
+    restart: unless-stopped
+    environment:
+      SSH_REMOTE_USER: your-tunnel-user        # dedicated, locked-down user on the remote — NOT root
+      SSH_REMOTE_HOST: your-remote-ip-or-host  # the box you're tunneling through (origin/VPN peer)
+      SSH_REMOTE_PORT: 22
+      SSH_MODE: -L                             # local forward (default is -R, remote forward — don't want that here)
+      SSH_BIND_IP: 127.0.0.1                   # keep loopback-only unless another container needs this port
+      SSH_TUNNEL_PORT: 20128                   # port THIS container listens on
+      SSH_TARGET_HOST: 127.0.0.1               # the target, as seen from the REMOTE side
+      SSH_TARGET_PORT: 20128                   # the service on/behind the remote you want to reach
+      SSH_STRICT_HOST_IP_CHECK: "false"        # relax if remote IP is dynamic; doesn't disable host key checking
+      SSH_SERVER_ALIVE_INTERVAL: 10
+      SSH_SERVER_ALIVE_COUNT_MAX: 3
+    ports:
+      - "20128:20128"     # host:container — change both sides if you changed SSH_TUNNEL_PORT
+    volumes:
+      - ./id_ed25519:/id_rsa:ro   # scoped key, read-only. Mount PATH must be /id_rsa (filename on disk doesn't matter)
+    networks:
+      - nat
+#    labels: # (optional — only if fronting this with Traefik, see ../traefik for the dedicated version) ------>
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.autossh-tunnel.entrypoints=websecure"
+#      - "traefik.http.routers.autossh-tunnel.rule=Host(`autossh-tunnel.example.com`)"
+#      - "traefik.http.routers.autossh-tunnel.tls=true"
+#      - "traefik.http.routers.autossh-tunnel.tls.certresolver=cloudflare"
+#      - "traefik.http.services.autossh-tunnel.loadbalancer.server.port=20128"
+#      - "traefik.docker.network=nat"
+#      - "traefik.http.routers.autossh-tunnel.service=autossh-tunnel"
+networks:
+  nat:
+    external: true
