@@ -1,0 +1,38 @@
+services:
+  byparr:
+    image: ghcr.io/thephaseless/byparr:latest
+    container_name: byparr
+    restart: unless-stopped
+#    ports:
+#      - "8191:8191"
+    mem_limit: 2g
+    shm_size: "1g"   # Camoufox (real Firefox under the hood) needs headroom; bump to 512mb-1g if you see multiprocessing/shm crashes on Proxmox LXC/OCI hosts
+    environment:
+      - LOG_LEVEL=info    # DEBUG | INFO | WARNING | ERROR
+      - TZ=UTC            # container timezone, affects log timestamps
+      # - HEADLESS=true   # NOT a real Byparr setting — left here as a documented no-op. The image has no display, Camoufox always runs headless. Do not rely on this var.
+      # - PROXY_SERVER=http://user:pass@host:port   # optional upstream proxy
+      # - PROXY_USERNAME=
+      # - PROXY_PASSWORD=
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8191/health"]
+      interval: 15m
+      timeout: 30s
+      start_period: 5s
+      retries: 3
+    networks:
+      - nat
+    labels: # (optional only for using traefik)
+      - "traefik.enable=true"
+      - "traefik.http.routers.byparr.entrypoints=websecure"
+      - "traefik.http.routers.byparr.rule=Host(`byparr.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.byparr.tls=true"
+      - "traefik.http.routers.byparr.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.byparr.loadbalancer.server.port=8191"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.byparr.service=byparr"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.byparr.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+networks:
+  nat:
+    external: true
