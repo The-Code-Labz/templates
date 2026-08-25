@@ -1,0 +1,36 @@
+services:
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    ports:
+      - "8191:8191"
+    environment:
+      - LOG_LEVEL=info          # DEBUG | INFO | WARNING | ERROR
+      - LOG_HTML=false          # dump full challenge HTML to logs (debugging only, verbose)
+      - CAPTCHA_SOLVER=none     # none | 2captcha | (see upstream README for supported solvers)
+      - TZ=UTC                  # container timezone, affects log timestamps
+    volumes:
+      - ./config:/config        # persists browser profile/session state across restarts
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8191/"]
+      interval: 1m
+      timeout: 15s
+      start_period: 10s
+      retries: 3
+    networks:
+      - nat
+#    labels: # (optional only for using traefik)
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.flaresolverr.entrypoints=websecure"
+#      - "traefik.http.routers.flaresolverr.rule=Host(`flaresolverr.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.flaresolverr.tls=true"
+#      - "traefik.http.routers.flaresolverr.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.flaresolverr.loadbalancer.server.port=8191"
+#      - "traefik.docker.network=nat"
+#      - "traefik.http.routers.flaresolverr.service=flaresolverr"
+#      - "com.centurylinklabs.watchtower.enable=true"  # (optional if using watchtower for updates)
+#      - "traefik.http.routers.flaresolverr.middlewares=authentik@file" # (optional if using authentik or basic auth to protect your site)
+networks:
+  nat:
+    external: true
