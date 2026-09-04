@@ -1,0 +1,40 @@
+services:
+  stash:
+    container_name: stash
+    image: stashapp/stash:latest
+    ports:
+      - "9999:9999" # Host Port : Container Port (WebUI)
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: "2m"
+    environment:
+      - STASH_STASH=/data/
+      - STASH_GENERATED=/generated/
+      - STASH_METADATA=/metadata/
+      - STASH_CACHE=/cache/
+      - STASH_PORT=9999 # Adjust to change default port (must match the host:container port above)
+      - TZ=Etc/UTC # Timezone (adjust as needed)
+    volumes:
+      - /path/to/your/stash/config:/root/.stash # Configs, scrapers, plugins
+      - /path/to/your/media/library:/data # Your collection (source files)
+      - /path/to/your/stash/metadata:/metadata
+      - /path/to/your/stash/cache:/cache
+      - /path/to/your/stash/blobs:/blobs # Scene covers, images
+      - /path/to/your/stash/generated:/generated # Screenshots, previews, transcodes, sprites
+    restart: unless-stopped
+    networks:
+      - nat
+#    labels: # (optional only for using traefik) ----->
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.stash.entrypoints=websecure"
+#      - "traefik.http.routers.stash.rule=Host(`stash.example.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.stash.tls=true"
+#      - "traefik.http.routers.stash.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.stash.loadbalancer.server.port=9999"
+#      - "traefik.docker.network=nat"
+#      - "traefik.http.routers.stash.service=stash"
+networks:
+  nat:
+    external: true
