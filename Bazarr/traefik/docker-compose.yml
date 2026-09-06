@@ -1,0 +1,29 @@
+services:
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /path/to/bazarr/data:/config
+      - /path/to/movies:/movies #optional
+      - /path/to/tvseries:/tv #optional
+#    ports:
+#      - 6767:6767
+    restart: unless-stopped
+    networks:
+      - nat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bazarr.entrypoints=websecure"
+      - "traefik.http.routers.bazarr.rule=Host(`bazarr.yourdomain.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.bazarr.tls=true"
+      - "traefik.http.routers.bazarr.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.bazarr.loadbalancer.server.port=6767"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.bazarr.service=bazarr"
+networks:
+  nat:
+    external: true
