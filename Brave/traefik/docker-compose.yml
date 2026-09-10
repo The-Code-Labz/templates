@@ -1,0 +1,36 @@
+services:
+  brave:
+    image: lscr.io/linuxserver/brave:latest
+    container_name: brave
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      # --- GPU acceleration (optional) ---
+      # Only needed if you mount /dev/dri below. Leave unset on hosts with no GPU.
+      # - PIXELFLUX_WAYLAND=true
+      # - DRINODE=/dev/dri/renderD128   # rendering (EGL/3D)
+      # - DRI_NODE=/dev/dri/renderD128  # encoding (VAAPI/NVENC) - same device = zero-copy
+    volumes:
+      - /path/to/brave/config:/config
+    # devices: # (optional, uncomment to pass through an Intel/AMD iGPU for hw accel)
+    #   - /dev/dri:/dev/dri
+#    ports:
+#      - 3000:3000  #HTTP
+#      - 3001:3001  #HTTPS
+    shm_size: "1gb" # required for Brave to function
+    restart: unless-stopped
+    networks:
+      - nat
+    labels: # (optional only for using traefik) ------>
+      - "traefik.enable=true"
+      - "traefik.http.routers.brave.entrypoints=websecure"
+      - "traefik.http.routers.brave.rule=Host(`brave.example.com`)" # Replace with your desired hostname
+      - "traefik.http.routers.brave.tls=true"
+      - "traefik.http.routers.brave.tls.certresolver=cloudflare" # Replace with your cert resolver name
+      - "traefik.http.services.brave.loadbalancer.server.port=3000"
+      - "traefik.docker.network=nat"
+      - "traefik.http.routers.brave.service=brave"
+networks:
+  nat:
+    external: true
