@@ -1,0 +1,42 @@
+services:
+  open-terminal:
+    # Image variants: latest (full toolkit, ~4GB, sudo + runtime pkg installs),
+    # slim (~430MB, hardened), alpine (~230MB, minimal), openshift (restricted SCC).
+    image: ghcr.io/open-webui/open-terminal:latest
+    container_name: open-terminal
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # REQUIRED in any reachable deployment — without this the REST API grants
+      # unauthenticated remote command execution to anyone who can reach the port.
+      - OPEN_TERMINAL_API_KEY=${OPEN_TERMINAL_API_KEY}
+      # Lock CORS down once you know which origin(s) will call this from a browser.
+      - OPEN_TERMINAL_CORS_ALLOWED_ORIGINS=${OPEN_TERMINAL_CORS_ALLOWED_ORIGINS:-*}
+      # Leave multi-user OFF unless every user of this instance is equally trusted —
+      # it only separates home directories, it is NOT a security boundary (shared
+      # kernel/network/process list). See upstream README.
+      # - OPEN_TERMINAL_MULTI_USER=true
+      # Runtime package installs (latest image only; slim/alpine need a custom build):
+      # - OPEN_TERMINAL_PACKAGES=cowsay figlet
+      # - OPEN_TERMINAL_PIP_PACKAGES=httpx polars
+      # - OPEN_TERMINAL_NPM_PACKAGES=typescript tsx
+    volumes:
+      - ./data:/home/user
+      # Docker CLI/socket access (optional, DANGEROUS — see README security notes):
+      # - /var/run/docker.sock:/var/run/docker.sock
+#    labels: #optional for traefik
+#      - "traefik.enable=true"
+#      - "traefik.http.routers.open-terminal.entrypoints=websecure"
+#      - "traefik.http.routers.open-terminal.rule=Host(`terminal.yourdomain.com`)" # Replace with your desired hostname
+#      - "traefik.http.routers.open-terminal.tls=true"
+#      - "traefik.http.routers.open-terminal.tls.certresolver=cloudflare" # Replace with your cert resolver name
+#      - "traefik.http.services.open-terminal.loadbalancer.server.port=8000"
+#      - "traefik.docker.network=nat"
+#      - "traefik.http.routers.open-terminal.service=open-terminal"
+    networks:
+      - nat
+#################################################################################
+networks:
+  nat:
+    external: true
